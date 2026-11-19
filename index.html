@@ -1,0 +1,1904 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Missão Dados 2027 — Tracker Gamificado (Matheus)</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --bg-card: #161b22;
+    --bg-soft: #1f2630;
+    --border: #2d3643;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #3b82f6;
+    --accent-soft: rgba(59, 130, 246, 0.14);
+    --green: #22c55e;
+    --green-soft: rgba(34, 197, 94, 0.14);
+    --amber: #f59e0b;
+    --amber-soft: rgba(245, 158, 11, 0.14);
+    --purple: #a855f7;
+    --purple-soft: rgba(168, 85, 247, 0.14);
+    --red: #ef4444;
+    --red-soft: rgba(239, 68, 68, 0.14);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    line-height: 1.5;
+  }
+
+  .container {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 20px 18px 48px;
+  }
+
+  /* Header */
+  .header {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 20px;
+    margin-bottom: 18px;
+  }
+
+  .header-top {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .title-wrap h1 {
+    margin: 0;
+    font-size: 1.45rem;
+    letter-spacing: -0.02em;
+  }
+
+  .title-wrap .sub {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin-top: 3px;
+  }
+
+  .header-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+
+  button {
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--bg-soft);
+    color: var(--text);
+    padding: 7px 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: background 0.15s, border-color 0.15s, transform 0.05s;
+  }
+
+  button:hover {
+    border-color: var(--accent);
+    background: #252e3a;
+  }
+
+  button:active { transform: translateY(1px); }
+
+  button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  button.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  button.primary:hover { background: #2563eb; }
+
+  button.chaos {
+    background: var(--amber-soft);
+    border-color: rgba(245, 158, 11, 0.45);
+    color: #fbbf24;
+  }
+
+  button.chaos.active {
+    background: var(--amber);
+    color: #111;
+    border-color: var(--amber);
+  }
+
+  button.danger {
+    color: #fca5a5;
+    border-color: rgba(239, 68, 68, 0.35);
+  }
+
+  button.danger:hover {
+    background: var(--red-soft);
+    border-color: var(--red);
+  }
+
+  .sync-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 0.82rem;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+
+  .sync-pill.ok {
+    background: var(--green-soft);
+    border-color: rgba(34, 197, 94, 0.45);
+    color: #86efac;
+  }
+
+  .sync-pill.busy {
+    background: var(--accent-soft);
+    border-color: rgba(59, 130, 246, 0.45);
+    color: #93c5fd;
+  }
+
+  .sync-pill.error {
+    background: var(--red-soft);
+    border-color: rgba(239, 68, 68, 0.45);
+    color: #fca5a5;
+  }
+
+  /* Stats grid */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .stat-box {
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+
+  .stat-label {
+    font-size: 0.78rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .stat-value {
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin-top: 2px;
+  }
+
+  .stat-sub {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .xp-bar-wrap {
+    margin-top: 8px;
+    height: 8px;
+    background: #0d1117;
+    border-radius: 999px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .xp-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6, #22c55e);
+    width: 0%;
+    transition: width 0.25s ease;
+  }
+
+  /* Layout */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 330px 1fr;
+    gap: 18px;
+    align-items: start;
+  }
+
+  @media (max-width: 920px) {
+    .main-grid { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 18px;
+    margin-bottom: 16px;
+  }
+
+  .card h2 {
+    margin: 0 0 12px;
+    font-size: 1.05rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  /* Pomodoro */
+  .timer-display {
+    font-size: 2.8rem;
+    font-weight: 800;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.03em;
+    padding: 10px 0 6px;
+    color: #fff;
+  }
+
+  .timer-mode-label {
+    text-align: center;
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .mode-pills {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+
+  .mode-pill {
+    font-size: 0.78rem;
+    padding: 6px 8px;
+    text-align: center;
+  }
+
+  .mode-pill.active {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    color: #93c5fd;
+  }
+
+  .timer-controls {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 12px;
+  }
+
+  .se-entao {
+    background: var(--amber-soft);
+    border: 1px solid rgba(245, 158, 11, 0.35);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 0.83rem;
+    color: #fde68a;
+    margin-top: 10px;
+  }
+
+  textarea, input[type="text"], input[type="password"], input[type="number"] {
+    width: 100%;
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 10px;
+    font-family: inherit;
+    font-size: 0.88rem;
+  }
+
+  textarea:focus, input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  textarea {
+    min-height: 110px;
+    resize: vertical;
+  }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .tab-btn {
+    padding: 8px 14px;
+    border-radius: 9px;
+    background: var(--bg-card);
+  }
+
+  .tab-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* Day Cards */
+  .day-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+  }
+
+  .day-card.chaos-hidden {
+    opacity: 0.6;
+  }
+
+  .day-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .day-title {
+    font-weight: 700;
+    font-size: 1rem;
+  }
+
+  .day-badge {
+    font-size: 0.78rem;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+
+  .day-badge.done {
+    background: var(--green-soft);
+    border-color: rgba(34, 197, 94, 0.45);
+    color: #86efac;
+  }
+
+  .task-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 7px 8px;
+    border-radius: 8px;
+    transition: background 0.12s;
+  }
+
+  .task-item:hover { background: var(--bg-soft); }
+
+  .task-item input[type="checkbox"] {
+    margin-top: 4px;
+    width: 17px;
+    height: 17px;
+    accent-color: var(--green);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .task-label {
+    cursor: pointer;
+    flex: 1;
+    font-size: 0.9rem;
+  }
+
+  .task-item.checked .task-label {
+    text-decoration: line-through;
+    color: var(--muted);
+  }
+
+  .tag {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 1px 7px;
+    border-radius: 6px;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+
+  .tag-exp { background: var(--accent-soft); color: #93c5fd; }
+  .tag-casa { background: var(--purple-soft); color: #d8b4fe; }
+  .tag-ler { background: var(--green-soft); color: #86efac; }
+  .tag-xp { background: var(--amber-soft); color: #fcd34d; margin-left: 6px; margin-right: 0; }
+
+  /* Projects & Weeks */
+  .project-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .project-card {
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+  }
+
+  .project-card h3 {
+    margin: 0 0 6px;
+    font-size: 0.96rem;
+  }
+
+  .project-card p {
+    margin: 0 0 10px;
+    font-size: 0.84rem;
+    color: var(--muted);
+  }
+
+  /* Links */
+  .links-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 12px;
+  }
+
+  .link-card {
+    display: block;
+    text-decoration: none;
+    color: var(--text);
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    transition: border-color 0.15s, transform 0.1s;
+  }
+
+  .link-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-1px);
+  }
+
+  .link-card strong {
+    display: block;
+    font-size: 0.94rem;
+    margin-bottom: 3px;
+    color: #93c5fd;
+  }
+
+  .link-card span {
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+
+  /* Reading Grid */
+  .reading-days {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .reading-day {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 0.84rem;
+    cursor: pointer;
+  }
+
+  .reading-day input { cursor: pointer; accent-color: var(--green); }
+
+  .muted { color: var(--muted); font-size: 0.85rem; }
+
+  .banner-chaos {
+    display: none;
+    background: var(--amber-soft);
+    border: 1px solid rgba(245, 158, 11, 0.45);
+    color: #fde68a;
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 14px;
+    font-size: 0.88rem;
+  }
+
+  .banner-chaos.visible { display: block; }
+
+  .apps-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+
+  /* Sync Modal */
+  .modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.72);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+
+  .modal-backdrop.open {
+    display: flex;
+  }
+
+  .modal-box {
+    width: 100%;
+    max-width: 560px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 22px;
+    max-height: 92vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .modal-header h2 {
+    margin: 0;
+    font-size: 1.12rem;
+  }
+
+  .guide-box {
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 11px 13px;
+    font-size: 0.84rem;
+    margin-bottom: 14px;
+  }
+
+  .guide-box ol {
+    margin: 6px 0 0 18px;
+    padding: 0;
+  }
+
+  .guide-box li {
+    margin: 3px 0;
+  }
+
+  .form-field {
+    margin-bottom: 12px;
+  }
+
+  .form-field label {
+    display: block;
+    font-size: 0.84rem;
+    font-weight: 600;
+    margin-bottom: 5px;
+  }
+
+  .field-hint {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .sync-msg {
+    display: none;
+    border-radius: 8px;
+    padding: 9px 12px;
+    font-size: 0.84rem;
+    margin-bottom: 12px;
+    word-break: break-word;
+  }
+
+  .sync-msg.show { display: block; }
+  .sync-msg.ok {
+    background: var(--green-soft);
+    border: 1px solid rgba(34, 197, 94, 0.45);
+    color: #86efac;
+  }
+  .sync-msg.err {
+    background: var(--red-soft);
+    border: 1px solid rgba(239, 68, 68, 0.45);
+    color: #fca5a5;
+  }
+  .sync-msg.info {
+    background: var(--accent-soft);
+    border: 1px solid rgba(59, 130, 246, 0.45);
+    color: #93c5fd;
+  }
+
+  .modal-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-top">
+      <div class="title-wrap">
+        <h1>Missão Dados 2027 — Painel do Matheus</h1>
+        <div class="sub">Trilha SQL · BI · Python · Portfólio | Meta: empregabilidade remota/híbrida até 01/02/2027</div>
+      </div>
+      <div class="header-actions">
+        <button id="syncStatusBadge" class="sync-pill" onclick="openSyncModal()">☁️ Sync: Local (Configurar)</button>
+        <button id="syncNowBtn" style="display:none;" onclick="syncNow()" title="Sincronizar agora com o GitHub Gist">🔄 Sync</button>
+        <button id="chaosBtn" class="chaos" onclick="toggleChaosMode()">⚡ Modo Dia Caótico (15 min)</button>
+        <button onclick="exportData()">⬇ Exportar JSON</button>
+        <button onclick="document.getElementById('importFile').click()">⬆ Importar JSON</button>
+        <input id="importFile" type="file" accept=".json" style="display:none" onchange="importData(event)">
+        <button class="danger" onclick="resetAll()">Resetar</button>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-box">
+        <div class="stat-label">Contagem Regressiva</div>
+        <div class="stat-value" id="daysLeft">-- dias</div>
+        <div class="stat-sub">até 01/02/2027</div>
+      </div>
+
+      <div class="stat-box">
+        <div class="stat-label">Nível &amp; XP</div>
+        <div class="stat-value"><span id="levelBadge">Nível 1</span> · <span id="xpValue">0</span> XP</div>
+        <div class="xp-bar-wrap"><div class="xp-bar-fill" id="xpBar"></div></div>
+        <div class="stat-sub" id="levelTitle">Explorador de Dados</div>
+      </div>
+
+      <div class="stat-box">
+        <div class="stat-label">Streak (Constância)</div>
+        <div class="stat-value">🔥 <span id="streakValue">0</span> dias</div>
+        <div class="stat-sub">
+          <button style="padding:3px 8px;font-size:0.75rem;margin-top:4px;" onclick="markTodayActive()">✓ Marcar hoje como ativo</button>
+        </div>
+      </div>
+
+      <div class="stat-box">
+        <div class="stat-label">Progresso Geral</div>
+        <div class="stat-value" id="progressSummary">0 / 0</div>
+        <div class="stat-sub">missões concluídas no plano</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-grid">
+    <!-- SIDEBAR -->
+    <div>
+      <!-- POMODORO -->
+      <div class="card">
+        <h2>
+          <span>⏱ Timer Anti-Procrastinação</span>
+          <span class="muted" id="blocksTodayLabel">Hoje: 0 blocos</span>
+        </h2>
+
+        <div class="mode-pills">
+          <button class="mode-pill active" data-mode="focus" onclick="setTimerMode('focus')">Foco 25m</button>
+          <button class="mode-pill" data-mode="chaos" onclick="setTimerMode('chaos')">Dia Caótico 15m</button>
+          <button class="mode-pill" data-mode="break" onclick="setTimerMode('break')">Pausa 5m</button>
+          <button class="mode-pill" data-mode="read" onclick="setTimerMode('read')">Leitura 10m</button>
+        </div>
+
+        <div class="timer-display" id="timerDisplay">25:00</div>
+        <div class="timer-mode-label" id="timerModeLabel">Modo: Foco Profundo (25 min)</div>
+
+        <div class="timer-controls">
+          <button class="primary" id="startPauseBtn" onclick="toggleTimer()">▶ Iniciar</button>
+          <button onclick="resetTimer()">↺ Reiniciar</button>
+          <button onclick="completeManualBlock()" title="Somar +10 XP manualmente">+10 XP</button>
+        </div>
+
+        <div class="se-entao">
+          <strong>Regra Se/Então:</strong> Se eu pegar o celular no meio do bloco → bloqueio a tela na hora, anoto a ideia abaixo e volto.
+        </div>
+      </div>
+
+      <!-- ESTACIONAMENTO DE DISTRAÇÕES -->
+      <div class="card">
+        <h2>🧠 Estacionamento de Pensamentos</h2>
+        <p class="muted" style="margin-top:0;">Lembrou de algo aleatório no meio do bloco? Anote aqui em 5 segundos em vez de abrir outra aba.</p>
+        <textarea id="parkingLot" placeholder="Ex.: Resolver pendência na pausa, pesquisar tal assunto depois..." oninput="saveParkingLot()"></textarea>
+      </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div>
+      <div class="banner-chaos" id="chaosBanner">
+        <strong>⚡ Modo Dia Caótico Ativo:</strong> Em dias difíceis ou corridos, sua única meta é concluir <strong>1 micro-bloco de 15 min</strong> (ou 1 exercício SQL no navegador) e manter seu <em>streak</em> vivo. O resto pode esperar amanhã sem culpa!
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="semana1" onclick="switchTab('semana1')">📅 Semana 1 (Dia a Dia)</button>
+        <button class="tab-btn" data-tab="roadmap" onclick="switchTab('roadmap')">🗺 Mapa 10 Semanas &amp; Projetos</button>
+        <button class="tab-btn" data-tab="expediente" onclick="switchTab('expediente')">🌐 Prática no Navegador</button>
+        <button class="tab-btn" data-tab="leitura" onclick="switchTab('leitura')">📖 Leitura (10 min)</button>
+      </div>
+
+      <!-- TAB 1: SEMANA 1 -->
+      <div class="tab-panel active" id="tab-semana1">
+        <div id="week1Container"></div>
+      </div>
+
+      <!-- TAB 2: MAPA 10 SEMANAS -->
+      <div class="tab-panel" id="tab-roadmap">
+        <div class="card">
+          <h2>🚀 3 Projetos de Portfólio (+150 XP cada)</h2>
+          <div class="project-grid" id="projectsContainer"></div>
+
+          <div style="border-top:1px solid var(--border); padding-top:12px;">
+            <strong>📨 Radar de Candidaturas (inicia na Semana 7 · 01/01/2027)</strong>
+            <p class="muted" style="margin:4px 0 8px;">Meta: 5 a 10 candidaturas focadas por semana (Analista/Assistente de Dados Jr, BI Jr, Support/Ops Analytics — remoto/híbrido).</p>
+            <div class="apps-row">
+              <span>Vagas enviadas: <strong id="appsCount" style="font-size:1.1rem;color:#93c5fd;">0</strong></span>
+              <button onclick="changeApps(1)">+1 Candidatura (+15 XP)</button>
+              <button onclick="changeApps(-1)">-1</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>🗺 Checklist das 10 Semanas (19/11/2026 → 01/02/2027)</h2>
+          <div id="weeksContainer"></div>
+        </div>
+      </div>
+
+      <!-- TAB 3: NAVEGADOR -->
+      <div class="tab-panel" id="tab-expediente">
+        <div class="card">
+          <h2>🌐 Prática 100% no Navegador (Qualquer PC)</h2>
+          <p class="muted" style="margin-top:0;">Sites leves e gamificados para praticar de qualquer computador sem precisar instalar nada pesado.</p>
+
+          <h3 style="font-size:0.95rem;margin:14px 0 8px;">1. SQL do Zero ao Intermediário (Semanas 1–3)</h3>
+          <div class="links-grid">
+            <a class="link-card" href="https://sqlbolt.com/" target="_blank" rel="noopener">
+              <strong>SQLBolt</strong>
+              <span>Lições interativas curtas com verificação imediata (ideal para blocos de 25m).</span>
+            </a>
+            <a class="link-card" href="https://sql-island.informatik.uni-kl.de/" target="_blank" rel="noopener">
+              <strong>SQL Island</strong>
+              <span>Jogo de sobrevivência em uma ilha resolvendo missões com SQL.</span>
+            </a>
+            <a class="link-card" href="https://mystery.knightlab.com/" target="_blank" rel="noopener">
+              <strong>SQL Murder Mystery</strong>
+              <span>Investigue um crime usando queries SQL (ótimo para a Semana 2).</span>
+            </a>
+            <a class="link-card" href="https://www.hackerrank.com/domains/sql" target="_blank" rel="noopener">
+              <strong>HackerRank — SQL</strong>
+              <span>Desafios estilo processo seletivo (comece pelos Easy).</span>
+            </a>
+          </div>
+
+          <h3 style="font-size:0.95rem;margin:18px 0 8px;">2. Planilhas, BI &amp; Apoio com IA (Semanas 1–5)</h3>
+          <div class="links-grid">
+            <a class="link-card" href="https://sheets.google.com/" target="_blank" rel="noopener">
+              <strong>Google Sheets</strong>
+              <span>Praticar PROCX (XLOOKUP), Tabelas Dinâmicas e limpeza de bases.</span>
+            </a>
+            <a class="link-card" href="https://lookerstudio.google.com/" target="_blank" rel="noopener">
+              <strong>Looker Studio</strong>
+              <span>Montar protótipos de dashboards direto no navegador.</span>
+            </a>
+            <a class="link-card" href="https://notebooklm.google.com/" target="_blank" rel="noopener">
+              <strong>NotebookLM</strong>
+              <span>Gerar Resumos em Áudio e quizzes dos seus materiais e papers.</span>
+            </a>
+          </div>
+
+          <h3 style="font-size:0.95rem;margin:18px 0 8px;">3. Lógica &amp; Python para Dados (Semanas 6–9)</h3>
+          <div class="links-grid">
+            <a class="link-card" href="https://exercism.org/tracks/python" target="_blank" rel="noopener">
+              <strong>Exercism — Python</strong>
+              <span>Exercícios curtos e guiados para evoluir em lógica passo a passo.</span>
+            </a>
+            <a class="link-card" href="https://www.codingame.com/" target="_blank" rel="noopener">
+              <strong>CodinGame</strong>
+              <span>Desafios gamificados para treinar lógica e raciocínio passo a passo.</span>
+            </a>
+            <a class="link-card" href="https://colab.research.google.com/" target="_blank" rel="noopener">
+              <strong>Google Colab</strong>
+              <span>Rodar notebooks Python + pandas no navegador sem instalar nada.</span>
+            </a>
+            <a class="link-card" href="https://www.hackerrank.com/domains/python" target="_blank" rel="noopener">
+              <strong>HackerRank — Python</strong>
+              <span>Treino diário de sintaxe, listas, dicionários e lógica.</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 4: LEITURA -->
+      <div class="tab-panel" id="tab-leitura">
+        <div class="card">
+          <h2>📖 Retomada do Prazer de Ler (Micro-hábito)</h2>
+          <p class="muted" style="margin-top:0;">Regra: <strong>5 páginas ou 10 minutos</strong> de ficção leve antes de dormir, longe do Wi-Fi. Nada de leitura técnica obrigatória aqui!</p>
+
+          <label for="currentBook" class="muted" style="display:block;margin-bottom:4px;">Livro atual (ficção / ação / aventura):</label>
+          <input id="currentBook" type="text" placeholder="Ex.: Devoradores de Estrelas / Jogador Nº 1 / Percy Jackson" oninput="saveBook()">
+
+          <div class="reading-days" id="readingDaysContainer"></div>
+
+          <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border);">
+            <strong style="font-size:0.9rem;">Sugestões de ritmo rápido (ação / aventura / sci-fi):</strong>
+            <ul class="muted" style="margin:6px 0 0 18px;padding:0;">
+              <li><em>Devoradores de Estrelas</em> (Andy Weir) — sci-fi super fluida com ciência prática</li>
+              <li><em>Jogador Nº 1</em> (Ernest Cline) — ritmo de videogame e referências tech</li>
+              <li><em>O Guia do Mochileiro das Galáxias</em> — capítulos curtos e divertidos</li>
+              <li><em>Jogos Vorazes</em> ou <em>Maze Runner</em> — leitura ágil que prende fácil</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DE SINCRONIZAÇÃO VIA GITHUB GIST SECRETO -->
+<div class="modal-backdrop" id="syncModal" onclick="handleModalBackdropClick(event)">
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="syncModalTitle">
+    <div class="modal-header">
+      <h2 id="syncModalTitle">☁️ Sincronização em Nuvem (GitHub Gist Secreto)</h2>
+      <button onclick="closeSyncModal()" aria-label="Fechar">✕</button>
+    </div>
+
+    <div class="guide-box">
+      <strong>Como ativar em 1 minuto (grátis e privado):</strong>
+      <ol>
+        <li>No GitHub, acesse <strong>Settings → Developer settings → Personal access tokens → Tokens (classic)</strong>.</li>
+        <li>Clique em <strong>Generate new token (classic)</strong> e marque <strong>APENAS a caixa <code>gist</code></strong>.</li>
+        <li>Cole o token abaixo. O progresso fica salvo num <strong>Gist Secreto</strong> na sua conta (nunca no repositório público) e o token fica salvo só neste navegador.</li>
+      </ol>
+    </div>
+
+    <div id="syncModalMsg" class="sync-msg"></div>
+
+    <div class="form-field">
+      <label for="githubTokenInput">Token do GitHub (apenas permissão <code>gist</code>)</label>
+      <input id="githubTokenInput" type="password" autocomplete="off" placeholder="ghp_...">
+    </div>
+
+    <div class="form-field">
+      <label for="gistIdInput">Gist ID (opcional)</label>
+      <input id="gistIdInput" type="text" autocomplete="off" placeholder="Deixe vazio para detectar ou criar automaticamente">
+      <div class="field-hint">Deixe vazio: o app encontra seu Gist <code>progresso_dados_2027.json</code> automaticamente ou cria um Gist Secreto novo.</div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="primary" onclick="connectAndSync()">Conectar e Sincronizar</button>
+      <button onclick="forcePullFromGist()">⬇ Baixar da Nuvem</button>
+      <button onclick="forcePushToGist()">⬆ Enviar para Nuvem</button>
+      <button class="danger" onclick="disconnectSync()">Desconectar deste navegador</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'matheus_dados_2027_v1';
+const SYNC_CFG_KEY = 'matheus_dados_2027_sync_v1';
+const GIST_FILENAME = 'progresso_dados_2027.json';
+
+const LEVELS = [
+  { min: 0,    name: 'Nível 1',  title: 'Explorador de Dados' },
+  { min: 100,  name: 'Nível 2',  title: 'Aprendiz de SELECT' },
+  { min: 250,  name: 'Nível 3',  title: 'Caçador de JOINs' },
+  { min: 450,  name: 'Nível 4',  title: 'Construtor de Dashboards' },
+  { min: 700,  name: 'Nível 5',  title: 'Domador de Pandas' },
+  { min: 1000, name: 'Nível 6',  title: 'Analista em Formação' },
+  { min: 1400, name: 'Nível 7',  title: 'Guardião de Portfólio' },
+  { min: 1850, name: 'Nível 8',  title: 'Pronto para Entrevistas' },
+  { min: 2400, name: 'Nível 9',  title: 'Candidato Competitivo' },
+  { min: 3000, name: 'Nível 10', title: 'Missão Dados 2027 Completa' }
+];
+
+const WEEK1_DAYS = [
+  {
+    id: 'd1',
+    title: 'Dia 1 (19–20/11): Arrumar a Casa + Primeiros SELECTs',
+    tasks: [
+      { id: 'd1_t1', env: 'exp', xp: 10, text: 'LinkedIn: ajustar resumo (status real de ADS) + atualizar pós para "Arquitetura e Gestão de Infraestrutura em TI" + criar/organizar GitHub.' },
+      { id: 'd1_t2', env: 'exp', xp: 10, text: 'SQLBolt: concluir Lições 1 e 2 (SELECT e WHERE numérico).' },
+      { id: 'd1_t3', env: 'exp', xp: 10, text: 'SQLBolt: concluir Lição 3 (WHERE com texto e LIKE).' },
+      { id: 'd1_t4', env: 'casa', xp: 15, text: 'PC Dev (opcional): configurar git config --global (user.name/email) e abrir pratica_sql_semana1.sql no DBeaver/VS Code.' },
+      { id: 'd1_t5', env: 'ler', xp: 10, text: 'Leitura: escolher 1 livro de ficção ágil e ler 5 páginas (10 min) antes de dormir.' }
+    ]
+  },
+  {
+    id: 'd2',
+    title: 'Dia 2 (23/11): Gamificação SQL + Primeira Base Local',
+    tasks: [
+      { id: 'd2_t1', env: 'exp', xp: 10, text: 'SQLBolt: concluir Lições 4 e 5 (DISTINCT, ORDER BY e LIMIT).' },
+      { id: 'd2_t2', env: 'exp', xp: 10, text: 'Jogar SQL Island: completar a primeira metade da ilha.' },
+      { id: 'd2_t3', env: 'exp', xp: 10, text: 'NotebookLM: subir guia curto de SQL e fazer 1 mini-quiz de 5 perguntas.' },
+      { id: 'd2_t4', env: 'casa', xp: 15, text: 'PC Dev (opcional): rodar pratica_sql_semana1.sql no DBeaver/SQLite e resolver Desafios 1, 2 e 3.' },
+      { id: 'd2_t5', env: 'ler', xp: 10, text: 'Leitura: 5 páginas / 10 min antes de dormir.' }
+    ]
+  },
+  {
+    id: 'd3',
+    title: 'Dia 3 (24/11): JOIN Básico + Planilhas com PROCX',
+    tasks: [
+      { id: 'd3_t1', env: 'exp', xp: 10, text: 'SQLBolt: concluir Lição 6 (introdução a INNER JOIN).' },
+      { id: 'd3_t2', env: 'exp', xp: 10, text: 'SQL Island: concluir o jogo e escapar da ilha!' },
+      { id: 'd3_t3', env: 'exp', xp: 10, text: 'Google Sheets: praticar PROCX (XLOOKUP) cruzando chamados com técnicos/setores.' },
+      { id: 'd3_t4', env: 'casa', xp: 15, text: 'PC Dev (opcional): testar DuckDB CLI no terminal (.read pratica_sql_semana1.sql).' },
+      { id: 'd3_t5', env: 'ler', xp: 10, text: 'Leitura: 5 páginas / 10 min antes de dormir.' }
+    ]
+  },
+  {
+    id: 'd4',
+    title: 'Dia 4 (25/11): Desafios Estilo Entrevista + Tabela Dinâmica',
+    tasks: [
+      { id: 'd4_t1', env: 'exp', xp: 10, text: 'HackerRank SQL: resolver os 4 primeiros desafios Easy.' },
+      { id: 'd4_t2', env: 'exp', xp: 10, text: 'Google Sheets: montar 1 Tabela Dinâmica (chamados por setor e tempo médio).' },
+      { id: 'd4_t3', env: 'exp', xp: 10, text: 'SQLBolt: revisar as questões que errou nas Lições 1–6.' },
+      { id: 'd4_t4', env: 'casa', xp: 15, text: 'PC Dev (opcional): resolver Desafios 4, 5 e 6 de pratica_sql_semana1.sql (COUNT, AVG, GROUP BY).' },
+      { id: 'd4_t5', env: 'ler', xp: 10, text: 'Leitura: 5 páginas / 10 min antes de dormir.' }
+    ]
+  },
+  {
+    id: 'd5',
+    title: 'Dia 5 (26/11): Consolidação + Primeiro Repositório GitHub',
+    tasks: [
+      { id: 'd5_t1', env: 'exp', xp: 10, text: 'HackerRank SQL: resolver mais 4 desafios Easy (total 8 na semana).' },
+      { id: 'd5_t2', env: 'exp', xp: 10, text: 'Gemini Pro (Modo Tutor): pedir revisão de 2 queries suas sem resposta pronta.' },
+      { id: 'd5_t3', env: 'exp', xp: 10, text: 'Revisão de 10 min: fechar pendências e preparar a Semana 2.' },
+      { id: 'd5_t4', env: 'casa', xp: 50, text: 'Marco GitHub (+50 XP): resolver Desafios 7–8 e subir repo estudos-sql-semana1 com README!' },
+      { id: 'd5_t5', env: 'ler', xp: 10, text: 'Leitura: 5 páginas / 10 min antes de dormir.' }
+    ]
+  },
+  {
+    id: 'd6',
+    title: 'Dias 6 e 7 (Fim de Semana): Descanso, Família & Lazer',
+    tasks: [
+      { id: 'd6_t1', env: 'ler', xp: 10, text: 'Opcional sem culpa: manter apenas o micro-hábito de leitura (10 min).' },
+      { id: 'd6_t2', env: 'casa', xp: 15, text: 'Bônus opcional: publicar um print ou aprendizado curto da semana no LinkedIn.' }
+    ]
+  }
+];
+
+const PROJECTS = [
+  {
+    id: 'proj1',
+    title: 'Projeto 1: Service Desk & Suporte TI Analytics',
+    desc: 'Análise completa de SLA, gargalos e chamados em SQLite/DuckDB + README didático no GitHub (Semana 3).',
+    xp: 150
+  },
+  {
+    id: 'proj2',
+    title: 'Projeto 2: Dados Públicos de Saúde / Biologia (Motivacional)',
+    desc: 'Dashboard interativo no Power BI / Looker Studio com dados públicos de saúde/biologia e storytelling claro (Semana 5).',
+    xp: 150
+  },
+  {
+    id: 'proj3',
+    title: 'Projeto 3: Pipeline Ponta a Ponta (Python + SQL + BI)',
+    desc: 'Script Python (pandas) limpando dataset aberto, salvando em banco e alimentando painel + post no LinkedIn (Semana 8).',
+    xp: 150
+  }
+];
+
+const WEEKS = [
+  { id: 'w1',  xp: 50, text: 'Semana 1 (19/11–26/11): Setup, LinkedIn/GitHub, SQL Básico (SQLBolt 1–6 + SQL Island) e Sheets (PROCX/Dinâmica).' },
+  { id: 'w2',  xp: 50, text: 'Semana 2 (27/11–03/12): SQL Intermediário (GROUP BY, HAVING, JOIN, CASE) + SQL Murder Mystery + 20 desafios Easy.' },
+  { id: 'w3',  xp: 50, text: 'Semana 3 (04/12–10/12 · ritmo flexível): CTEs + publicar Projeto 1 (Service Desk Analytics) + 1º post LinkedIn.' },
+  { id: 'w4',  xp: 50, text: 'Semana 4 (11/12–17/12): Power BI Desktop (Power Query, Modelo Estrela, DAX básico) + Looker Studio no navegador.' },
+  { id: 'w5',  xp: 50, text: 'Semana 5 (18/12–24/12 · Natal): Publicar Projeto 2 (Dados Públicos de Saúde/Biologia) com storytelling executivo.' },
+  { id: 'w6',  xp: 50, text: 'Semana 6 (25/12–31/12 · Ano Novo): Reconstruir Lógica + Python Essencial (Exercism / CodinGame / Colab).' },
+  { id: 'w7',  xp: 50, text: 'Semana 7 (01/01–07/01): Python para Dados (pandas + DuckDB) + currículo ATS pronto + INÍCIO DAS CANDIDATURAS.' },
+  { id: 'w8',  xp: 50, text: 'Semana 8 (08/01–14/01): Publicar Projeto 3 (Pipeline Python + SQL + Dashboard) + post no LinkedIn.' },
+  { id: 'w9',  xp: 50, text: 'Semana 9 (15/01–21/01): Simulação de entrevistas (Gemini Pro) + pitch (Infra + Didática + Dados) + bateria SQL.' },
+  { id: 'w10', xp: 50, text: 'Semana 10 (22/01–01/02): Polimento dos 3 projetos + networking ativo no LinkedIn + revisão final de lacunas.' }
+];
+
+const DEFAULT_STATE = {
+  checked: {},
+  manualXp: 0,
+  streak: 0,
+  lastActiveDate: null,
+  blocksToday: 0,
+  blocksDate: null,
+  chaosMode: false,
+  parkingLot: '',
+  currentBook: '',
+  readingDays: {},
+  applicationsCount: 0,
+  activeTab: 'semana1',
+  updatedAt: null
+};
+
+let state = loadState();
+let syncCfg = loadSyncCfg();
+let syncStatus = { kind: syncCfg.token ? 'idle' : 'local', text: '' };
+let pushTimeout = null;
+let syncInFlight = false;
+
+let timerInterval = null;
+let timerMode = 'focus';
+let timerSeconds = 25 * 60;
+let timerRunning = false;
+
+const MODE_CONFIG = {
+  focus: { seconds: 25 * 60, label: 'Modo: Foco Profundo (25 min)', xp: 10 },
+  chaos: { seconds: 15 * 60, label: 'Modo: Dia Caótico (15 min — salvar streak)', xp: 10 },
+  break: { seconds: 5 * 60,  label: 'Modo: Pausa Curta (5 min — longe do celular se possível)', xp: 0 },
+  read:  { seconds: 10 * 60, label: 'Modo: Leitura Leve (10 min — 5 páginas)', xp: 10 }
+};
+
+function todayISO() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function yesterdayISO() {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function sanitizeState(rawObj) {
+  const base = structuredClone(DEFAULT_STATE);
+  if (!rawObj || typeof rawObj !== 'object') return base;
+  const cleaned = { ...base, ...rawObj };
+  delete cleaned.token;
+  delete cleaned.gistId;
+  return cleaned;
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return structuredClone(DEFAULT_STATE);
+    return sanitizeState(JSON.parse(raw));
+  } catch {
+    return structuredClone(DEFAULT_STATE);
+  }
+}
+
+function loadSyncCfg() {
+  try {
+    const raw = localStorage.getItem(SYNC_CFG_KEY);
+    if (!raw) return { token: '', gistId: '', lastSyncAt: null };
+    const parsed = JSON.parse(raw);
+    return {
+      token: typeof parsed.token === 'string' ? parsed.token : '',
+      gistId: typeof parsed.gistId === 'string' ? parsed.gistId : '',
+      lastSyncAt: parsed.lastSyncAt || null
+    };
+  } catch {
+    return { token: '', gistId: '', lastSyncAt: null };
+  }
+}
+
+function saveSyncCfg() {
+  localStorage.setItem(SYNC_CFG_KEY, JSON.stringify(syncCfg));
+}
+
+function saveState(markModified = true) {
+  if (markModified) {
+    state.updatedAt = new Date().toISOString();
+  }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  if (markModified && syncCfg.token && syncCfg.gistId) {
+    scheduleCloudPush();
+  }
+}
+
+function registerActivityToday() {
+  const today = todayISO();
+  if (state.blocksDate !== today) {
+    state.blocksDate = today;
+    state.blocksToday = 0;
+  }
+  if (state.lastActiveDate === today) return;
+  if (state.lastActiveDate === yesterdayISO()) {
+    state.streak += 1;
+  } else {
+    state.streak = 1;
+  }
+  state.lastActiveDate = today;
+}
+
+function markTodayActive() {
+  registerActivityToday();
+  saveState(true);
+  renderAll();
+}
+
+function calcXP() {
+  let total = state.manualXp || 0;
+  for (const day of WEEK1_DAYS) {
+    let dayDone = true;
+    for (const t of day.tasks) {
+      if (state.checked[t.id]) total += t.xp;
+      else dayDone = false;
+    }
+    if (dayDone && day.id !== 'd6') total += 25;
+  }
+  for (const p of PROJECTS) {
+    if (state.checked[p.id]) total += p.xp;
+  }
+  for (const w of WEEKS) {
+    if (state.checked[w.id]) total += w.xp;
+  }
+  for (const k of Object.keys(state.readingDays || {})) {
+    if (state.readingDays[k]) total += 10;
+  }
+  total += (state.applicationsCount || 0) * 15;
+  return total;
+}
+
+function getLevelInfo(xp) {
+  let current = LEVELS[0];
+  let next = LEVELS[1];
+  for (let i = 0; i < LEVELS.length; i++) {
+    if (xp >= LEVELS[i].min) {
+      current = LEVELS[i];
+      next = LEVELS[i + 1] || null;
+    }
+  }
+  let pct = 100;
+  if (next) {
+    pct = Math.min(100, Math.round(((xp - current.min) / (next.min - current.min)) * 100));
+  }
+  return { current, next, pct };
+}
+
+function updateCountdown() {
+  const target = new Date('2027-02-01T00:00:00');
+  const now = new Date();
+  const diffDays = Math.max(0, Math.ceil((target - now) / (1000 * 60 * 60 * 24)));
+  document.getElementById('daysLeft').textContent = `${diffDays} dias`;
+}
+
+function toggleTask(id) {
+  state.checked[id] = !state.checked[id];
+  if (state.checked[id]) {
+    registerActivityToday();
+  }
+  saveState(true);
+  renderAll();
+}
+
+function toggleChaosMode() {
+  state.chaosMode = !state.chaosMode;
+  saveState(true);
+  renderAll();
+}
+
+function switchTab(tab) {
+  state.activeTab = tab;
+  saveState(false);
+  renderTabs();
+}
+
+function renderTabs() {
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === state.activeTab);
+  });
+  document.querySelectorAll('.tab-panel').forEach(panel => {
+    panel.classList.toggle('active', panel.id === `tab-${state.activeTab}`);
+  });
+}
+
+function envTag(env) {
+  if (env === 'exp') return '<span class="tag tag-exp">Navegador · 25m</span>';
+  if (env === 'casa') return '<span class="tag tag-casa">PC Dev · Projetos</span>';
+  return '<span class="tag tag-ler">Leitura · 10 min</span>';
+}
+
+function renderWeek1() {
+  const container = document.getElementById('week1Container');
+  container.innerHTML = '';
+
+  for (const day of WEEK1_DAYS) {
+    const doneCount = day.tasks.filter(t => state.checked[t.id]).length;
+    const totalCount = day.tasks.length;
+    const isComplete = doneCount === totalCount;
+
+    const card = document.createElement('div');
+    card.className = 'day-card';
+    if (state.chaosMode && day.id === 'd6') card.classList.add('chaos-hidden');
+
+    const tasksHtml = day.tasks
+      .filter(t => !state.chaosMode || t.id.endsWith('_t2') || t.id.endsWith('_t1'))
+      .map(t => {
+        const checked = !!state.checked[t.id];
+        return `
+          <div class="task-item ${checked ? 'checked' : ''}">
+            <input type="checkbox" id="${t.id}" ${checked ? 'checked' : ''} onchange="toggleTask('${t.id}')">
+            <label class="task-label" for="${t.id}">
+              ${envTag(t.env)}${t.text}<span class="tag tag-xp">+${t.xp} XP</span>
+            </label>
+          </div>
+        `;
+      }).join('');
+
+    card.innerHTML = `
+      <div class="day-header">
+        <div class="day-title">${day.title}</div>
+        <div class="day-badge ${isComplete ? 'done' : ''}">${doneCount}/${totalCount} feitas ${isComplete && day.id !== 'd6' ? '· +25 XP bônus' : ''}</div>
+      </div>
+      ${tasksHtml}
+    `;
+    container.appendChild(card);
+  }
+}
+
+function renderProjectsAndWeeks() {
+  const projBox = document.getElementById('projectsContainer');
+  projBox.innerHTML = PROJECTS.map(p => {
+    const checked = !!state.checked[p.id];
+    return `
+      <div class="project-card">
+        <h3>${p.title}</h3>
+        <p>${p.desc}</p>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.86rem;">
+          <input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleTask('${p.id}')" style="width:16px;height:16px;accent-color:var(--green);">
+          <span>${checked ? 'Publicado! (+150 XP)' : 'Marcar como publicado (+150 XP)'}</span>
+        </label>
+      </div>
+    `;
+  }).join('');
+
+  const weeksBox = document.getElementById('weeksContainer');
+  weeksBox.innerHTML = WEEKS.map(w => {
+    const checked = !!state.checked[w.id];
+    return `
+      <div class="task-item ${checked ? 'checked' : ''}">
+        <input type="checkbox" id="${w.id}" ${checked ? 'checked' : ''} onchange="toggleTask('${w.id}')">
+        <label class="task-label" for="${w.id}">${w.text}<span class="tag tag-xp">+${w.xp} XP</span></label>
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('appsCount').textContent = state.applicationsCount || 0;
+}
+
+function changeApps(delta) {
+  state.applicationsCount = Math.max(0, (state.applicationsCount || 0) + delta);
+  if (delta > 0) registerActivityToday();
+  saveState(true);
+  renderAll();
+}
+
+function renderReadingDays() {
+  const box = document.getElementById('readingDaysContainer');
+  let html = '';
+  for (let i = 1; i <= 21; i++) {
+    const key = `r_${i}`;
+    const checked = !!(state.readingDays && state.readingDays[key]);
+    html += `
+      <label class="reading-day">
+        <input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleReadingDay('${key}')">
+        <span>Dia ${i} (+10 XP)</span>
+      </label>
+    `;
+  }
+  box.innerHTML = html;
+}
+
+function toggleReadingDay(key) {
+  if (!state.readingDays) state.readingDays = {};
+  state.readingDays[key] = !state.readingDays[key];
+  if (state.readingDays[key]) registerActivityToday();
+  saveState(true);
+  renderAll();
+}
+
+function saveParkingLot() {
+  state.parkingLot = document.getElementById('parkingLot').value;
+  saveState(true);
+}
+
+function saveBook() {
+  state.currentBook = document.getElementById('currentBook').value;
+  saveState(true);
+}
+
+function formatHHMM(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+function renderSyncBadge() {
+  const badge = document.getElementById('syncStatusBadge');
+  const syncBtn = document.getElementById('syncNowBtn');
+  badge.className = 'sync-pill';
+
+  if (!syncCfg.token || !syncCfg.gistId) {
+    badge.textContent = '☁️ Sync: Local (Configurar)';
+    syncBtn.style.display = 'none';
+    return;
+  }
+
+  syncBtn.style.display = 'inline-block';
+
+  if (syncStatus.kind === 'busy') {
+    badge.classList.add('busy');
+    badge.textContent = '⏳ Sincronizando...';
+  } else if (syncStatus.kind === 'error') {
+    badge.classList.add('error');
+    badge.textContent = '⚠️ Erro no Sync';
+  } else {
+    badge.classList.add('ok');
+    const hhmm = formatHHMM(syncCfg.lastSyncAt);
+    badge.textContent = hhmm ? `☁️ Sincronizado ${hhmm}` : '☁️ Sync Conectado';
+  }
+}
+
+function renderAll() {
+  updateCountdown();
+
+  const today = todayISO();
+  if (state.blocksDate !== today) {
+    state.blocksDate = today;
+    state.blocksToday = 0;
+  }
+
+  const xp = calcXP();
+  const lvl = getLevelInfo(xp);
+  document.getElementById('xpValue').textContent = xp;
+  document.getElementById('levelBadge').textContent = lvl.current.name;
+  document.getElementById('levelTitle').textContent = lvl.next
+    ? `${lvl.current.title} · faltam ${lvl.next.min - xp} XP para ${lvl.next.name}`
+    : lvl.current.title;
+  document.getElementById('xpBar').style.width = `${lvl.pct}%`;
+  document.getElementById('streakValue').textContent = state.streak || 0;
+  document.getElementById('blocksTodayLabel').textContent = `Hoje: ${state.blocksToday || 0} blocos`;
+
+  const allItems = [
+    ...WEEK1_DAYS.flatMap(d => d.tasks.map(t => t.id)),
+    ...PROJECTS.map(p => p.id),
+    ...WEEKS.map(w => w.id)
+  ];
+  const doneItems = allItems.filter(id => state.checked[id]).length;
+  document.getElementById('progressSummary').textContent = `${doneItems} / ${allItems.length}`;
+
+  const chaosBtn = document.getElementById('chaosBtn');
+  chaosBtn.classList.toggle('active', !!state.chaosMode);
+  document.getElementById('chaosBanner').classList.toggle('visible', !!state.chaosMode);
+
+  const parkingEl = document.getElementById('parkingLot');
+  if (document.activeElement !== parkingEl) {
+    parkingEl.value = state.parkingLot || '';
+  }
+
+  const bookEl = document.getElementById('currentBook');
+  if (document.activeElement !== bookEl) {
+    bookEl.value = state.currentBook || '';
+  }
+
+  renderTabs();
+  renderWeek1();
+  renderProjectsAndWeeks();
+  renderReadingDays();
+  renderSyncBadge();
+}
+
+/* CLOUD SYNC — GITHUB GIST SECRETO */
+function setSyncState(kind, text = '') {
+  syncStatus = { kind, text };
+  renderSyncBadge();
+}
+
+function setModalMsg(type, text) {
+  const el = document.getElementById('syncModalMsg');
+  if (!text) {
+    el.className = 'sync-msg';
+    el.textContent = '';
+    return;
+  }
+  el.className = `sync-msg show ${type}`;
+  el.textContent = text;
+}
+
+function openSyncModal() {
+  document.getElementById('githubTokenInput').value = syncCfg.token || '';
+  document.getElementById('gistIdInput').value = syncCfg.gistId || '';
+  if (syncStatus.kind === 'error' && syncStatus.text) {
+    setModalMsg('err', syncStatus.text);
+  } else if (syncCfg.token && syncCfg.gistId) {
+    const hhmm = formatHHMM(syncCfg.lastSyncAt);
+    setModalMsg('ok', `Conectado ao Gist ${syncCfg.gistId}${hhmm ? ` · último sync às ${hhmm}` : ''}.`);
+  } else {
+    setModalMsg('', '');
+  }
+  document.getElementById('syncModal').classList.add('open');
+}
+
+function closeSyncModal() {
+  document.getElementById('syncModal').classList.remove('open');
+}
+
+function handleModalBackdropClick(event) {
+  if (event.target.id === 'syncModal') {
+    closeSyncModal();
+  }
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeSyncModal();
+  }
+});
+
+function gistHeaders(token) {
+  return {
+    'Authorization': `Bearer ${token}`,
+    'Accept': 'application/vnd.github+json',
+    'Content-Type': 'application/json'
+  };
+}
+
+function describeGitHubError(status, fallback) {
+  if (status === 401) return 'Token inválido ou expirado (401). Gere um novo token com permissão "gist".';
+  if (status === 403) return 'Acesso negado ou limite da API GitHub atingido (403).';
+  if (status === 404) return 'Gist não encontrado (404). Verifique o Gist ID ou deixe o campo vazio.';
+  return fallback || `Erro na API do GitHub (HTTP ${status}).`;
+}
+
+async function findExistingGist(token) {
+  const res = await fetch('https://api.github.com/gists?per_page=50', {
+    method: 'GET',
+    headers: gistHeaders(token)
+  });
+  if (!res.ok) {
+    throw new Error(describeGitHubError(res.status, 'Falha ao buscar seus Gists.'));
+  }
+  const list = await res.json();
+  const match = list.find(g => g && g.files && Object.prototype.hasOwnProperty.call(g.files, GIST_FILENAME));
+  return match ? match.id : null;
+}
+
+async function createSecretGist(token, payload) {
+  const res = await fetch('https://api.github.com/gists', {
+    method: 'POST',
+    headers: gistHeaders(token),
+    body: JSON.stringify({
+      description: 'Missão Dados 2027 - Progresso do Tracker',
+      public: false,
+      files: {
+        [GIST_FILENAME]: {
+          content: JSON.stringify(payload, null, 2)
+        }
+      }
+    })
+  });
+  if (!res.ok) {
+    throw new Error(describeGitHubError(res.status, 'Falha ao criar Gist Secreto.'));
+  }
+  const data = await res.json();
+  return data.id;
+}
+
+async function fetchGistState(token, gistId) {
+  const res = await fetch(`https://api.github.com/gists/${encodeURIComponent(gistId)}`, {
+    method: 'GET',
+    headers: gistHeaders(token),
+    cache: 'no-store'
+  });
+  if (!res.ok) {
+    throw new Error(describeGitHubError(res.status, 'Falha ao ler dados do Gist.'));
+  }
+  const data = await res.json();
+  const fileObj = data && data.files ? data.files[GIST_FILENAME] : null;
+  if (!fileObj) {
+    return null;
+  }
+  let content = fileObj.content || '';
+  if (fileObj.truncated && fileObj.raw_url) {
+    const rawRes = await fetch(fileObj.raw_url, { cache: 'no-store' });
+    if (rawRes.ok) content = await rawRes.text();
+  }
+  if (!content.trim()) return null;
+  return sanitizeState(JSON.parse(content));
+}
+
+async function patchGistState(token, gistId, payload) {
+  const cleanPayload = sanitizeState(payload);
+  const res = await fetch(`https://api.github.com/gists/${encodeURIComponent(gistId)}`, {
+    method: 'PATCH',
+    headers: gistHeaders(token),
+    body: JSON.stringify({
+      files: {
+        [GIST_FILENAME]: {
+          content: JSON.stringify(cleanPayload, null, 2)
+        }
+      }
+    })
+  });
+  if (!res.ok) {
+    throw new Error(describeGitHubError(res.status, 'Falha ao atualizar Gist na nuvem.'));
+  }
+  return await res.json();
+}
+
+function parseTimeMs(iso) {
+  if (!iso) return 0;
+  const ms = Date.parse(iso);
+  return Number.isNaN(ms) ? 0 : ms;
+}
+
+async function reconcileWithGist(token, gistId) {
+  const remoteState = await fetchGistState(token, gistId);
+  if (!remoteState) {
+    if (!state.updatedAt) state.updatedAt = new Date().toISOString();
+    await patchGistState(token, gistId, state);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    return 'pushed';
+  }
+
+  const localMs = parseTimeMs(state.updatedAt);
+  const remoteMs = parseTimeMs(remoteState.updatedAt);
+
+  if (!state.updatedAt || remoteMs > localMs) {
+    state = sanitizeState(remoteState);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    renderAll();
+    return 'pulled';
+  }
+
+  if (localMs > remoteMs) {
+    await patchGistState(token, gistId, state);
+    return 'pushed';
+  }
+
+  return 'equal';
+}
+
+async function connectAndSync() {
+  const token = document.getElementById('githubTokenInput').value.trim();
+  let gistId = document.getElementById('gistIdInput').value.trim();
+
+  if (!token) {
+    setModalMsg('err', 'Cole seu Personal Access Token do GitHub (com permissão gist) primeiro.');
+    return;
+  }
+
+  clearTimeout(pushTimeout);
+  syncInFlight = true;
+  setSyncState('busy');
+  setModalMsg('info', 'Conectando ao GitHub Gist...');
+
+  try {
+    let actionMsg = '';
+    if (!gistId) {
+      const existingId = await findExistingGist(token);
+      if (existingId) {
+        gistId = existingId;
+        const result = await reconcileWithGist(token, gistId);
+        actionMsg = result === 'pulled'
+          ? 'Gist existente encontrado! Progresso da nuvem carregado neste navegador.'
+          : 'Gist existente encontrado e sincronizado!';
+      } else {
+        if (!state.updatedAt) {
+          state.updatedAt = new Date().toISOString();
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        }
+        gistId = await createSecretGist(token, state);
+        actionMsg = 'Novo Gist Secreto criado e progresso salvo na nuvem!';
+      }
+    } else {
+      const result = await reconcileWithGist(token, gistId);
+      actionMsg = result === 'pulled'
+        ? 'Conectado! Progresso mais recente baixado da nuvem.'
+        : 'Conectado e sincronizado com o Gist informado!';
+    }
+
+    syncCfg = { token, gistId, lastSyncAt: new Date().toISOString() };
+    saveSyncCfg();
+    document.getElementById('gistIdInput').value = gistId;
+    setSyncState('ok');
+    setModalMsg('ok', `${actionMsg} (Gist ID: ${gistId})`);
+  } catch (err) {
+    const msg = err && err.message ? err.message : 'Erro inesperado ao sincronizar.';
+    setSyncState('error', msg);
+    setModalMsg('err', msg);
+  } finally {
+    syncInFlight = false;
+  }
+}
+
+async function syncNow({ silent = false } = {}) {
+  if (!syncCfg.token || !syncCfg.gistId || syncInFlight) return;
+  clearTimeout(pushTimeout);
+  syncInFlight = true;
+  setSyncState('busy');
+
+  try {
+    const result = await reconcileWithGist(syncCfg.token, syncCfg.gistId);
+    syncCfg.lastSyncAt = new Date().toISOString();
+    saveSyncCfg();
+    setSyncState('ok');
+    if (!silent && document.getElementById('syncModal').classList.contains('open')) {
+      setModalMsg('ok', result === 'pulled'
+        ? 'Progresso atualizado com a versão mais nova da nuvem!'
+        : 'Tudo sincronizado com a nuvem!');
+    }
+  } catch (err) {
+    const msg = err && err.message ? err.message : 'Falha na sincronização (verifique sua conexão ou token).';
+    setSyncState('error', msg);
+    if (!silent) {
+      setModalMsg('err', msg);
+    }
+  } finally {
+    syncInFlight = false;
+  }
+}
+
+async function forcePullFromGist() {
+  const token = (document.getElementById('githubTokenInput').value || syncCfg.token || '').trim();
+  const gistId = (document.getElementById('gistIdInput').value || syncCfg.gistId || '').trim();
+  if (!token || !gistId) {
+    setModalMsg('err', 'Informe Token e Gist ID (ou clique em "Conectar e Sincronizar" primeiro).');
+    return;
+  }
+  clearTimeout(pushTimeout);
+  syncInFlight = true;
+  setSyncState('busy');
+  try {
+    const remoteState = await fetchGistState(token, gistId);
+    if (!remoteState) {
+      throw new Error('O Gist ainda não contém dados válidos de progresso.');
+    }
+    state = sanitizeState(remoteState);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    syncCfg = { token, gistId, lastSyncAt: new Date().toISOString() };
+    saveSyncCfg();
+    renderAll();
+    setSyncState('ok');
+    setModalMsg('ok', 'Progresso baixado da nuvem e aplicado aqui!');
+  } catch (err) {
+    const msg = err && err.message ? err.message : 'Erro ao baixar da nuvem.';
+    setSyncState('error', msg);
+    setModalMsg('err', msg);
+  } finally {
+    syncInFlight = false;
+  }
+}
+
+async function forcePushToGist() {
+  const token = (document.getElementById('githubTokenInput').value || syncCfg.token || '').trim();
+  const gistId = (document.getElementById('gistIdInput').value || syncCfg.gistId || '').trim();
+  if (!token || !gistId) {
+    setModalMsg('err', 'Informe Token e Gist ID (ou clique em "Conectar e Sincronizar" primeiro).');
+    return;
+  }
+  clearTimeout(pushTimeout);
+  syncInFlight = true;
+  setSyncState('busy');
+  try {
+    if (!state.updatedAt) {
+      state.updatedAt = new Date().toISOString();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+    await patchGistState(token, gistId, state);
+    syncCfg = { token, gistId, lastSyncAt: new Date().toISOString() };
+    saveSyncCfg();
+    setSyncState('ok');
+    setModalMsg('ok', 'Progresso local enviado para a nuvem com sucesso!');
+  } catch (err) {
+    const msg = err && err.message ? err.message : 'Erro ao enviar para a nuvem.';
+    setSyncState('error', msg);
+    setModalMsg('err', msg);
+  } finally {
+    syncInFlight = false;
+  }
+}
+
+function disconnectSync() {
+  clearTimeout(pushTimeout);
+  localStorage.removeItem(SYNC_CFG_KEY);
+  syncCfg = { token: '', gistId: '', lastSyncAt: null };
+  document.getElementById('githubTokenInput').value = '';
+  document.getElementById('gistIdInput').value = '';
+  setSyncState('local', '');
+  setModalMsg('info', 'Sincronização removida deste navegador. Seu Gist na nuvem e seu progresso local foram preservados.');
+}
+
+function scheduleCloudPush() {
+  if (!syncCfg.token || !syncCfg.gistId) return;
+  clearTimeout(pushTimeout);
+  pushTimeout = setTimeout(async () => {
+    if (!syncCfg.token || !syncCfg.gistId) return;
+    if (syncInFlight) {
+      scheduleCloudPush();
+      return;
+    }
+    syncInFlight = true;
+    setSyncState('busy');
+    try {
+      await patchGistState(syncCfg.token, syncCfg.gistId, state);
+      syncCfg.lastSyncAt = new Date().toISOString();
+      saveSyncCfg();
+      setSyncState('ok');
+    } catch (err) {
+      const msg = err && err.message ? err.message : 'Falha ao enviar alteração para o Gist.';
+      setSyncState('error', msg);
+    } finally {
+      syncInFlight = false;
+    }
+  }, 1500);
+}
+
+/* POMODORO */
+function formatTime(sec) {
+  const m = String(Math.floor(sec / 60)).padStart(2, '0');
+  const s = String(sec % 60).padStart(2, '0');
+  return `${m}:${s}`;
+}
+
+function updateTimerUI() {
+  document.getElementById('timerDisplay').textContent = formatTime(timerSeconds);
+  document.getElementById('timerModeLabel').textContent = MODE_CONFIG[timerMode].label;
+  document.getElementById('startPauseBtn').textContent = timerRunning ? '⏸ Pausar' : '▶ Iniciar';
+  document.querySelectorAll('.mode-pill').forEach(p => {
+    p.classList.toggle('active', p.dataset.mode === timerMode);
+  });
+}
+
+function setTimerMode(mode) {
+  clearInterval(timerInterval);
+  timerRunning = false;
+  timerMode = mode;
+  timerSeconds = MODE_CONFIG[mode].seconds;
+  updateTimerUI();
+}
+
+function resetTimer() {
+  clearInterval(timerInterval);
+  timerRunning = false;
+  timerSeconds = MODE_CONFIG[timerMode].seconds;
+  updateTimerUI();
+}
+
+function playBeep() {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    const ctx = new AudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = 587.33;
+    gain.gain.setValueAtTime(0.08, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.6);
+  } catch {
+    // áudio opcional
+  }
+}
+
+function toggleTimer() {
+  if (timerRunning) {
+    clearInterval(timerInterval);
+    timerRunning = false;
+    updateTimerUI();
+    return;
+  }
+  timerRunning = true;
+  updateTimerUI();
+  timerInterval = setInterval(() => {
+    timerSeconds -= 1;
+    if (timerSeconds <= 0) {
+      clearInterval(timerInterval);
+      timerRunning = false;
+      playBeep();
+      const gainXp = MODE_CONFIG[timerMode].xp;
+      if (gainXp > 0) {
+        registerActivityToday();
+        state.manualXp = (state.manualXp || 0) + gainXp;
+        state.blocksToday = (state.blocksToday || 0) + 1;
+        saveState(true);
+        renderAll();
+      }
+      timerSeconds = MODE_CONFIG[timerMode].seconds;
+      updateTimerUI();
+      alert(gainXp > 0
+        ? `Bloco concluído! +${gainXp} XP ganhos. Faça 5 min de pausa!`
+        : 'Pausa encerrada! Hora do próximo bloco.');
+      return;
+    }
+    updateTimerUI();
+  }, 1000);
+}
+
+function completeManualBlock() {
+  registerActivityToday();
+  state.manualXp = (state.manualXp || 0) + 10;
+  state.blocksToday = (state.blocksToday || 0) + 1;
+  saveState(true);
+  renderAll();
+}
+
+/* BACKUP JSON */
+function exportData() {
+  const safeExport = sanitizeState(state);
+  const blob = new Blob([JSON.stringify(safeExport, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `tracker_dados_2027_${todayISO()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      state = sanitizeState(parsed);
+      saveState(true);
+      renderAll();
+      alert('Backup importado com sucesso!');
+    } catch {
+      alert('Arquivo JSON inválido.');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+function resetAll() {
+  if (!confirm('Tem certeza que deseja zerar todo o progresso do tracker?')) return;
+  state = structuredClone(DEFAULT_STATE);
+  saveState(true);
+  renderAll();
+}
+
+renderAll();
+updateTimerUI();
+
+if (syncCfg.token && syncCfg.gistId) {
+  syncNow({ silent: true });
+}
+</script>
+</body>
+</html>
