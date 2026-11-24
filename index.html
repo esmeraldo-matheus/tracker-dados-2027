@@ -526,6 +526,82 @@
 
   .banner-chaos.visible { display: block; }
 
+  .adaptive-bar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    background: var(--accent-soft);
+    border: 1px solid rgba(59, 130, 246, 0.35);
+    color: #dbeafe;
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 12px;
+    font-size: 0.86rem;
+  }
+
+  .adaptive-bar.ahead {
+    background: var(--green-soft);
+    border-color: rgba(34, 197, 94, 0.4);
+    color: #dcfce7;
+  }
+
+  .adaptive-bar.compressed {
+    background: var(--amber-soft);
+    border-color: rgba(245, 158, 11, 0.4);
+    color: #fef3c7;
+  }
+
+  .adaptive-bar-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .day-card.current-focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.28);
+  }
+
+  .task-item.current-focus {
+    background: rgba(59, 130, 246, 0.08);
+    border: 1px solid rgba(59, 130, 246, 0.28);
+  }
+
+  .focus-pill {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    border: 1px solid rgba(59, 130, 246, 0.45);
+    color: #93c5fd;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+
+  .week-date-pill {
+    display: inline-block;
+    font-size: 0.74rem;
+    font-weight: 700;
+    padding: 1px 7px;
+    border-radius: 6px;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    color: #cbd5e1;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+
+  .week-date-pill.done {
+    background: var(--green-soft);
+    border-color: rgba(34, 197, 94, 0.4);
+    color: #86efac;
+  }
+
   .apps-row {
     display: flex;
     align-items: center;
@@ -751,17 +827,19 @@
 
       <!-- TAB 1: SEMANA 1 -->
       <div class="tab-panel active" id="tab-semana1">
+        <div id="adaptiveBannerWeek1" class="adaptive-bar"></div>
         <div id="week1Container"></div>
       </div>
 
       <!-- TAB 2: MAPA 10 SEMANAS -->
       <div class="tab-panel" id="tab-roadmap">
+        <div id="adaptiveBannerRoadmap" class="adaptive-bar"></div>
         <div class="card">
           <h2>🚀 3 Projetos de Portfólio (+150 XP cada)</h2>
           <div class="project-grid" id="projectsContainer"></div>
 
           <div style="border-top:1px solid var(--border); padding-top:12px;">
-            <strong>📨 Radar de Candidaturas (inicia na Semana 7 · 01/01/2027)</strong>
+            <strong>📨 Radar de Candidaturas (inicia na <span id="appsStartLabel">Semana 7</span>)</strong>
             <p class="muted" style="margin:4px 0 8px;">Meta: 5 a 10 candidaturas focadas por semana (Analista/Assistente de Dados Jr, BI Jr, Support/Ops Analytics — remoto/híbrido).</p>
             <div class="apps-row">
               <span>Vagas enviadas: <strong id="appsCount" style="font-size:1.1rem;color:#93c5fd;">0</strong></span>
@@ -772,7 +850,7 @@
         </div>
 
         <div class="card">
-          <h2>🗺 Checklist das 10 Semanas (19/11/2026 → 01/02/2027)</h2>
+          <h2>🗺 Checklist das 10 Semanas (<span id="roadmapRangeLabel">adaptativo → 01/02/2027</span>)</h2>
           <div id="weeksContainer"></div>
         </div>
       </div>
@@ -924,10 +1002,17 @@ const LEVELS = [
   { min: 3000, name: 'Nível 10', title: 'Missão Dados 2027 Completa' }
 ];
 
+const WEEKDAYS_PT = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+const TARGET_DEADLINE = new Date(2027, 1, 1); // 01/02/2027 (fuso local)
+const CHRISTMAS_DATE = new Date(2026, 11, 25); // 25/12/2026
+const NEW_YEAR_DATE = new Date(2027, 0, 1);   // 01/01/2027
+
 const WEEK1_DAYS = [
   {
     id: 'd1',
-    title: 'Dia 1 (19–20/11): Arrumar a Casa + Primeiros SELECTs',
+    stepLabel: 'Dia 1',
+    topic: 'Arrumar a Casa + Primeiros SELECTs',
+    isWeekendCard: false,
     tasks: [
       { id: 'd1_t1', env: 'exp', xp: 10, text: 'LinkedIn: ajustar resumo (status real de ADS) + atualizar pós para "Arquitetura e Gestão de Infraestrutura em TI" + criar/organizar GitHub.' },
       { id: 'd1_t2', env: 'exp', xp: 10, text: 'SQLBolt: concluir Lições 1 e 2 (SELECT e WHERE numérico).' },
@@ -938,7 +1023,9 @@ const WEEK1_DAYS = [
   },
   {
     id: 'd2',
-    title: 'Dia 2 (23/11): Gamificação SQL + Primeira Base Local',
+    stepLabel: 'Dia 2',
+    topic: 'Gamificação SQL + Primeira Base Local',
+    isWeekendCard: false,
     tasks: [
       { id: 'd2_t1', env: 'exp', xp: 10, text: 'SQLBolt: concluir Lições 4 e 5 (DISTINCT, ORDER BY e LIMIT).' },
       { id: 'd2_t2', env: 'exp', xp: 10, text: 'Jogar SQL Island: completar a primeira metade da ilha.' },
@@ -949,7 +1036,9 @@ const WEEK1_DAYS = [
   },
   {
     id: 'd3',
-    title: 'Dia 3 (24/11): JOIN Básico + Planilhas com PROCX',
+    stepLabel: 'Dia 3',
+    topic: 'JOIN Básico + Planilhas com PROCX',
+    isWeekendCard: false,
     tasks: [
       { id: 'd3_t1', env: 'exp', xp: 10, text: 'SQLBolt: concluir Lição 6 (introdução a INNER JOIN).' },
       { id: 'd3_t2', env: 'exp', xp: 10, text: 'SQL Island: concluir o jogo e escapar da ilha!' },
@@ -960,7 +1049,9 @@ const WEEK1_DAYS = [
   },
   {
     id: 'd4',
-    title: 'Dia 4 (25/11): Desafios Estilo Entrevista + Tabela Dinâmica',
+    stepLabel: 'Dia 4',
+    topic: 'Desafios Estilo Entrevista + Tabela Dinâmica',
+    isWeekendCard: false,
     tasks: [
       { id: 'd4_t1', env: 'exp', xp: 10, text: 'HackerRank SQL: resolver os 4 primeiros desafios Easy.' },
       { id: 'd4_t2', env: 'exp', xp: 10, text: 'Google Sheets: montar 1 Tabela Dinâmica (chamados por setor e tempo médio).' },
@@ -971,7 +1062,9 @@ const WEEK1_DAYS = [
   },
   {
     id: 'd5',
-    title: 'Dia 5 (26/11): Consolidação + Primeiro Repositório GitHub',
+    stepLabel: 'Dia 5',
+    topic: 'Consolidação + Primeiro Repositório GitHub',
+    isWeekendCard: false,
     tasks: [
       { id: 'd5_t1', env: 'exp', xp: 10, text: 'HackerRank SQL: resolver mais 4 desafios Easy (total 8 na semana).' },
       { id: 'd5_t2', env: 'exp', xp: 10, text: 'Gemini Pro (Modo Tutor): pedir revisão de 2 queries suas sem resposta pronta.' },
@@ -982,7 +1075,9 @@ const WEEK1_DAYS = [
   },
   {
     id: 'd6',
-    title: 'Dias 6 e 7 (Fim de Semana): Descanso, Família & Lazer',
+    stepLabel: 'Fim de Semana',
+    topic: 'Descanso, Família & Lazer',
+    isWeekendCard: true,
     tasks: [
       { id: 'd6_t1', env: 'ler', xp: 10, text: 'Opcional sem culpa: manter apenas o micro-hábito de leitura (10 min).' },
       { id: 'd6_t2', env: 'casa', xp: 15, text: 'Bônus opcional: publicar um print ou aprendizado curto da semana no LinkedIn.' }
@@ -993,39 +1088,43 @@ const WEEK1_DAYS = [
 const PROJECTS = [
   {
     id: 'proj1',
+    weekId: 'w3',
     title: 'Projeto 1: Service Desk & Suporte TI Analytics',
-    desc: 'Análise completa de SLA, gargalos e chamados em SQLite/DuckDB + README didático no GitHub (Semana 3).',
+    desc: 'Análise completa de SLA, gargalos e chamados em SQLite/DuckDB + README didático no GitHub.',
     xp: 150
   },
   {
     id: 'proj2',
+    weekId: 'w5',
     title: 'Projeto 2: Dados Públicos de Saúde / Biologia (Motivacional)',
-    desc: 'Dashboard interativo no Power BI / Looker Studio com dados públicos de saúde/biologia e storytelling claro (Semana 5).',
+    desc: 'Dashboard interativo no Power BI / Looker Studio com dados públicos de saúde/biologia e storytelling claro.',
     xp: 150
   },
   {
     id: 'proj3',
+    weekId: 'w8',
     title: 'Projeto 3: Pipeline Ponta a Ponta (Python + SQL + BI)',
-    desc: 'Script Python (pandas) limpando dataset aberto, salvando em banco e alimentando painel + post no LinkedIn (Semana 8).',
+    desc: 'Script Python (pandas) limpando dataset aberto, salvando em banco e alimentando painel + post no LinkedIn.',
     xp: 150
   }
 ];
 
 const WEEKS = [
-  { id: 'w1',  xp: 50, text: 'Semana 1 (19/11–26/11): Setup, LinkedIn/GitHub, SQL Básico (SQLBolt 1–6 + SQL Island) e Sheets (PROCX/Dinâmica).' },
-  { id: 'w2',  xp: 50, text: 'Semana 2 (27/11–03/12): SQL Intermediário (GROUP BY, HAVING, JOIN, CASE) + SQL Murder Mystery + 20 desafios Easy.' },
-  { id: 'w3',  xp: 50, text: 'Semana 3 (04/12–10/12 · ritmo flexível): CTEs + publicar Projeto 1 (Service Desk Analytics) + 1º post LinkedIn.' },
-  { id: 'w4',  xp: 50, text: 'Semana 4 (11/12–17/12): Power BI Desktop (Power Query, Modelo Estrela, DAX básico) + Looker Studio no navegador.' },
-  { id: 'w5',  xp: 50, text: 'Semana 5 (18/12–24/12 · Natal): Publicar Projeto 2 (Dados Públicos de Saúde/Biologia) com storytelling executivo.' },
-  { id: 'w6',  xp: 50, text: 'Semana 6 (25/12–31/12 · Ano Novo): Reconstruir Lógica + Python Essencial (Exercism / CodinGame / Colab).' },
-  { id: 'w7',  xp: 50, text: 'Semana 7 (01/01–07/01): Python para Dados (pandas + DuckDB) + currículo ATS pronto + INÍCIO DAS CANDIDATURAS.' },
-  { id: 'w8',  xp: 50, text: 'Semana 8 (08/01–14/01): Publicar Projeto 3 (Pipeline Python + SQL + Dashboard) + post no LinkedIn.' },
-  { id: 'w9',  xp: 50, text: 'Semana 9 (15/01–21/01): Simulação de entrevistas (Gemini Pro) + pitch (Infra + Didática + Dados) + bateria SQL.' },
-  { id: 'w10', xp: 50, text: 'Semana 10 (22/01–01/02): Polimento dos 3 projetos + networking ativo no LinkedIn + revisão final de lacunas.' }
+  { id: 'w1',  num: 1,  xp: 50, summary: 'Setup, LinkedIn/GitHub, SQL Básico (SQLBolt 1–6 + SQL Island) e Sheets (PROCX/Dinâmica).' },
+  { id: 'w2',  num: 2,  xp: 50, summary: 'SQL Intermediário (GROUP BY, HAVING, JOIN, CASE) + SQL Murder Mystery + 20 desafios Easy.' },
+  { id: 'w3',  num: 3,  xp: 50, summary: 'CTEs + publicar Projeto 1 (Service Desk Analytics) + 1º post LinkedIn.' },
+  { id: 'w4',  num: 4,  xp: 50, summary: 'Power BI Desktop (Power Query, Modelo Estrela, DAX básico) + Looker Studio no navegador.' },
+  { id: 'w5',  num: 5,  xp: 50, summary: 'Publicar Projeto 2 (Dados Públicos de Saúde/Biologia) com storytelling executivo.' },
+  { id: 'w6',  num: 6,  xp: 50, summary: 'Reconstruir Lógica + Python Essencial (Exercism / CodinGame / Colab).' },
+  { id: 'w7',  num: 7,  xp: 50, summary: 'Python para Dados (pandas + DuckDB) + currículo ATS pronto + INÍCIO DAS CANDIDATURAS.' },
+  { id: 'w8',  num: 8,  xp: 50, summary: 'Publicar Projeto 3 (Pipeline Python + SQL + Dashboard) + post no LinkedIn.' },
+  { id: 'w9',  num: 9,  xp: 50, summary: 'Simulação de entrevistas (Gemini Pro) + pitch (Infra + Didática + Dados) + bateria SQL.' },
+  { id: 'w10', num: 10, xp: 50, summary: 'Polimento dos 3 projetos + networking ativo no LinkedIn + revisão final de lacunas.' }
 ];
 
 const DEFAULT_STATE = {
   checked: {},
+  completedAt: {},
   manualXp: 0,
   streak: 0,
   lastActiveDate: null,
@@ -1058,27 +1157,89 @@ const MODE_CONFIG = {
   read:  { seconds: 10 * 60, label: 'Modo: Leitura Leve (10 min — 5 páginas)', xp: 10 }
 };
 
-function todayISO() {
-  const d = new Date();
+function startOfToday() {
+  const n = new Date();
+  return new Date(n.getFullYear(), n.getMonth(), n.getDate());
+}
+
+function toISODate(d) {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
   return `${y}-${m}-${day}`;
 }
 
+function parseLocalISO(iso) {
+  if (!iso || typeof iso !== 'string') return null;
+  const parts = iso.split('-');
+  if (parts.length !== 3) return null;
+  const y = Number(parts[0]);
+  const m = Number(parts[1]);
+  const day = Number(parts[2]);
+  if (!Number.isInteger(y) || !Number.isInteger(m) || !Number.isInteger(day)) return null;
+  const d = new Date(y, m - 1, day);
+  if (d.getFullYear() !== y || d.getMonth() !== m - 1 || d.getDate() !== day) return null;
+  return d;
+}
+
+function addDays(d, n) {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+}
+
+function diffDays(a, b) {
+  const utcA = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
+  const utcB = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
+  return Math.round((utcB - utcA) / 86400000);
+}
+
+function isWeekend(d) {
+  const dow = d.getDay();
+  return dow === 0 || dow === 6;
+}
+
+function nextWeekday(d) {
+  let cur = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  while (isWeekend(cur)) {
+    cur = addDays(cur, 1);
+  }
+  return cur;
+}
+
+function formatDDMM(d, includeYearIfDiff = false, refYear = null) {
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const baseYear = refYear === null ? startOfToday().getFullYear() : refYear;
+  if (includeYearIfDiff && d.getFullYear() !== baseYear) {
+    const yy = String(d.getFullYear()).slice(-2);
+    return `${dd}/${mm}/${yy}`;
+  }
+  return `${dd}/${mm}`;
+}
+
+function formatHumanDay(d, today) {
+  const delta = diffDays(today, d);
+  const wday = WEEKDAYS_PT[d.getDay()];
+  const dm = formatDDMM(d);
+  if (delta === 0) return `Hoje · ${wday}, ${dm}`;
+  if (delta === 1) return `Amanhã · ${wday}, ${dm}`;
+  return `${wday}, ${dm}`;
+}
+
+function todayISO() {
+  return toISODate(startOfToday());
+}
+
 function yesterdayISO() {
-  const d = new Date();
-  d.setDate(d.getDate() - 1);
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
+  return toISODate(addDays(startOfToday(), -1));
 }
 
 function sanitizeState(rawObj) {
   const base = structuredClone(DEFAULT_STATE);
   if (!rawObj || typeof rawObj !== 'object') return base;
   const cleaned = { ...base, ...rawObj };
+  cleaned.checked = (rawObj.checked && typeof rawObj.checked === 'object') ? { ...rawObj.checked } : {};
+  cleaned.completedAt = (rawObj.completedAt && typeof rawObj.completedAt === 'object') ? { ...rawObj.completedAt } : {};
+  cleaned.readingDays = (rawObj.readingDays && typeof rawObj.readingDays === 'object') ? { ...rawObj.readingDays } : {};
   delete cleaned.token;
   delete cleaned.gistId;
   return cleaned;
@@ -1152,7 +1313,7 @@ function calcXP() {
       if (state.checked[t.id]) total += t.xp;
       else dayDone = false;
     }
-    if (dayDone && day.id !== 'd6') total += 25;
+    if (dayDone && !day.isWeekendCard) total += 25;
   }
   for (const p of PROJECTS) {
     if (state.checked[p.id]) total += p.xp;
@@ -1183,20 +1344,268 @@ function getLevelInfo(xp) {
   return { current, next, pct };
 }
 
-function updateCountdown() {
-  const target = new Date('2027-02-01T00:00:00');
-  const now = new Date();
-  const diffDays = Math.max(0, Math.ceil((target - now) / (1000 * 60 * 60 * 24)));
-  document.getElementById('daysLeft').textContent = `${diffDays} dias`;
+function updateCountdown(today = startOfToday()) {
+  const remaining = Math.max(0, diffDays(today, TARGET_DEADLINE));
+  document.getElementById('daysLeft').textContent = `${remaining} dias`;
 }
 
 function toggleTask(id) {
+  if (!state.completedAt || typeof state.completedAt !== 'object') {
+    state.completedAt = {};
+  }
+  const todayStr = todayISO();
   state.checked[id] = !state.checked[id];
   if (state.checked[id]) {
     registerActivityToday();
   }
+
+  if (id.startsWith('w') || id.startsWith('proj')) {
+    if (state.checked[id]) {
+      state.completedAt[id] = todayStr;
+    } else {
+      delete state.completedAt[id];
+    }
+  }
+
+  for (const day of WEEK1_DAYS) {
+    if (day.isWeekendCard) continue;
+    const allDone = day.tasks.every(t => state.checked[t.id]);
+    if (allDone) {
+      if (!state.completedAt[day.id]) {
+        state.completedAt[day.id] = todayStr;
+      }
+    } else {
+      delete state.completedAt[day.id];
+    }
+  }
+
   saveState(true);
   renderAll();
+}
+
+function completeWeek1FromBanner() {
+  if (!state.completedAt || typeof state.completedAt !== 'object') {
+    state.completedAt = {};
+  }
+  state.checked.w1 = true;
+  state.completedAt.w1 = todayISO();
+  registerActivityToday();
+  saveState(true);
+  renderAll();
+}
+
+function computeWeek1Schedule(today, st = state) {
+  const todayStr = toISODate(today);
+  const completedMap = (st && st.completedAt) || {};
+  const checkedMap = (st && st.checked) || {};
+  const studyDays = WEEK1_DAYS.filter(d => !d.isWeekendCard);
+
+  const studyMeta = studyDays.map(d => {
+    const doneCount = d.tasks.filter(t => checkedMap[t.id]).length;
+    const totalCount = d.tasks.length;
+    const isComplete = doneCount === totalCount;
+    return {
+      ...d,
+      doneCount,
+      totalCount,
+      isComplete,
+      hasAnyChecked: doneCount > 0,
+      completedDate: isComplete ? parseLocalISO(completedMap[d.id]) : null,
+      assignedDate: null,
+      isCurrentFocus: false
+    };
+  });
+
+  const completedStudyDayToday = studyMeta.some(
+    d => d.isComplete && completedMap[d.id] === todayStr
+  );
+  const firstInc = studyMeta.find(d => !d.isComplete) || null;
+
+  let cursor = null;
+  if (firstInc) {
+    if (completedStudyDayToday && !firstInc.hasAnyChecked) {
+      cursor = nextWeekday(addDays(today, 1));
+    } else if (isWeekend(today) && !firstInc.hasAnyChecked) {
+      cursor = nextWeekday(today);
+    } else {
+      cursor = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    }
+  }
+
+  const incompleteDays = [];
+  for (const item of studyMeta) {
+    if (item.isComplete) {
+      const doneText = item.completedDate ? `✓ Concluído em ${formatDDMM(item.completedDate)}` : '✓ Concluído';
+      item.displayTitle = `${item.stepLabel} (${doneText}): ${item.topic}`;
+      continue;
+    }
+    item.assignedDate = cursor;
+    item.isCurrentFocus = firstInc ? item.id === firstInc.id : false;
+    item.displayTitle = `${item.stepLabel} (${formatHumanDay(cursor, today)}): ${item.topic}`;
+    incompleteDays.push({ id: item.id, date: cursor, displayTitle: item.displayTitle });
+    cursor = nextWeekday(addDays(cursor, 1));
+  }
+
+  const dow = today.getDay();
+  const sat = dow === 0 ? addDays(today, -1) : addDays(today, 6 - dow);
+  const sun = addDays(sat, 1);
+  const weekendRangeLabel = `Sáb, ${formatDDMM(sat)} – Dom, ${formatDDMM(sun)}`;
+
+  const days = WEEK1_DAYS.map(d => {
+    if (!d.isWeekendCard) {
+      return studyMeta.find(s => s.id === d.id);
+    }
+    const doneCount = d.tasks.filter(t => checkedMap[t.id]).length;
+    const totalCount = d.tasks.length;
+    return {
+      ...d,
+      doneCount,
+      totalCount,
+      isComplete: doneCount === totalCount,
+      assignedDate: sat,
+      isCurrentFocus: false,
+      displayTitle: `${d.stepLabel} (${weekendRangeLabel}): ${d.topic}`
+    };
+  });
+
+  return {
+    days,
+    incompleteDays,
+    firstIncomplete: firstInc,
+    allStudyDaysComplete: studyMeta.every(d => d.isComplete),
+    weekendRangeLabel
+  };
+}
+
+function computeRoadmapSchedule(today, week1Schedule, st = state) {
+  const todayStr = toISODate(today);
+  const completedMap = (st && st.completedAt) || {};
+  const checkedMap = (st && st.checked) || {};
+
+  const incWeeks = WEEKS.filter(w => !checkedMap[w.id]);
+  const scheduledById = {};
+  let paceKind = 'on-track';
+  let paceMessage = '';
+  let finalEndDate = TARGET_DEADLINE;
+
+  if (incWeeks.length === 0) {
+    paceKind = 'ahead';
+    paceMessage = '🎉 Todas as 10 semanas foram concluídas! Hora de focar 100% em revisões e entrevistas.';
+  } else {
+    let remWeeks = incWeeks;
+    let remStart;
+
+    if (incWeeks[0].id === 'w1' && week1Schedule.incompleteDays.length > 0) {
+      const w1Start = week1Schedule.incompleteDays[0].date;
+      const w1End = week1Schedule.incompleteDays[week1Schedule.incompleteDays.length - 1].date;
+      scheduledById.w1 = { start: w1Start, end: w1End };
+      remWeeks = incWeeks.slice(1);
+      remStart = addDays(w1End, 1);
+    } else {
+      const completedAnyWeekToday = WEEKS.some(
+        w => checkedMap[w.id] && completedMap[w.id] === todayStr
+      );
+      remStart = completedAnyWeekToday ? addDays(today, 1) : new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    }
+
+    const M = remWeeks.length;
+    if (M > 0) {
+      const daysAvailable = diffDays(remStart, TARGET_DEADLINE) + 1;
+      if (daysAvailable > M * 7) {
+        for (let k = 0; k < M; k++) {
+          const wStart = addDays(remStart, k * 7);
+          const wEnd = addDays(wStart, 6);
+          scheduledById[remWeeks[k].id] = { start: wStart, end: wEnd };
+        }
+        finalEndDate = addDays(remStart, M * 7 - 1);
+        const daysEarly = diffDays(finalEndDate, TARGET_DEADLINE);
+        paceKind = 'ahead';
+        paceMessage = `🚀 Ritmo adiantado! Previsão atual de término: ${formatDDMM(finalEndDate, true, today.getFullYear())} (${daysEarly} dia(s) antes de 01/02/2027).`;
+      } else if (daysAvailable >= M * 4) {
+        for (let k = 0; k < M; k++) {
+          const startOffset = Math.round((k * daysAvailable) / M);
+          const endOffset = Math.max(startOffset, Math.round(((k + 1) * daysAvailable) / M) - 1);
+          const wStart = addDays(remStart, startOffset);
+          const wEnd = addDays(remStart, endOffset);
+          scheduledById[remWeeks[k].id] = { start: wStart, end: wEnd };
+        }
+        finalEndDate = TARGET_DEADLINE;
+        const avgDays = (daysAvailable / M).toFixed(1).replace('.', ',');
+        paceKind = 'on-track';
+        paceMessage = `🔄 Cronograma adaptativo ativo: datas ajustadas automaticamente ao seu ritmo (~${avgDays} dias/semana até 01/02/2027).`;
+      } else {
+        for (let k = 0; k < M; k++) {
+          const wStart = addDays(remStart, k * 4);
+          const wEnd = addDays(wStart, 3);
+          scheduledById[remWeeks[k].id] = { start: wStart, end: wEnd };
+        }
+        finalEndDate = addDays(remStart, M * 4 - 1);
+        paceKind = 'compressed';
+        paceMessage = `⚡ Prazo curto até 01/02/2027: mantendo mínimo de 4 dias/etapa para proteger a prática (previsão atual: ${formatDDMM(finalEndDate, true, today.getFullYear())}).`;
+      }
+    } else if (scheduledById.w1) {
+      finalEndDate = scheduledById.w1.end;
+      const daysEarly = Math.max(0, diffDays(finalEndDate, TARGET_DEADLINE));
+      paceKind = 'ahead';
+      paceMessage = `🚀 Reta final! Só falta a Semana 1 (previsão: ${formatDDMM(finalEndDate, true, today.getFullYear())}, ${daysEarly} dias de folga até 01/02/2027).`;
+    }
+  }
+
+  const firstIncId = incWeeks.length > 0 ? incWeeks[0].id : null;
+  const weeks = WEEKS.map(w => {
+    const isComplete = !!checkedMap[w.id];
+    const completedDate = isComplete ? parseLocalISO(completedMap[w.id]) : null;
+    const span = scheduledById[w.id] || null;
+    let dateLabel = '';
+    let holidayTag = '';
+
+    if (isComplete) {
+      dateLabel = completedDate ? `✓ Concluída em ${formatDDMM(completedDate)}` : '✓ Concluída';
+    } else if (span) {
+      dateLabel = `${formatDDMM(span.start)}–${formatDDMM(span.end)}`;
+      if (diffDays(span.start, CHRISTMAS_DATE) >= 0 && diffDays(CHRISTMAS_DATE, span.end) >= 0) {
+        holidayTag += ' · 🎄 Natal';
+      }
+      if (diffDays(span.start, NEW_YEAR_DATE) >= 0 && diffDays(NEW_YEAR_DATE, span.end) >= 0) {
+        holidayTag += ' · 🎆 Ano Novo';
+      }
+    }
+
+    return {
+      ...w,
+      isComplete,
+      completedDate,
+      start: span ? span.start : null,
+      end: span ? span.end : null,
+      dateLabel,
+      holidayTag,
+      isCurrentFocus: firstIncId === w.id
+    };
+  });
+
+  const weekById = {};
+  for (const item of weeks) {
+    weekById[item.id] = item;
+  }
+
+  const firstActive = incWeeks.length > 0 ? weekById[incWeeks[0].id] : null;
+  const startRef = firstActive && firstActive.start ? firstActive.start : today;
+  const rangeLabel = `${formatDDMM(startRef, true, today.getFullYear())} → ${formatDDMM(finalEndDate, true, today.getFullYear())}`;
+
+  const w7 = weekById.w7;
+  const appsWeekRange = w7.isComplete
+    ? `Semana 7 (${w7.dateLabel})`
+    : `Semana 7 · ${w7.dateLabel}`;
+
+  return {
+    weeks,
+    weekById,
+    paceKind,
+    paceMessage,
+    rangeLabel,
+    appsWeekRange,
+    finalEndDate
+  };
 }
 
 function toggleChaosMode() {
@@ -1226,18 +1635,30 @@ function envTag(env) {
   return '<span class="tag tag-ler">Leitura · 10 min</span>';
 }
 
-function renderWeek1() {
+function renderWeek1(today, week1Schedule) {
+  const banner = document.getElementById('adaptiveBannerWeek1');
+  const todayLabel = `${WEEKDAYS_PT[today.getDay()]}, ${formatDDMM(today)}/${today.getFullYear()}`;
+  const focusInfo = week1Schedule.firstIncomplete
+    ? `Meta atual: <strong>${week1Schedule.firstIncomplete.stepLabel}</strong> (${formatHumanDay(week1Schedule.firstIncomplete.assignedDate, today)}). As datas se ajustam sozinhas ao seu ritmo.`
+    : '🎉 Todos os 5 dias úteis da Semana 1 foram concluídos!';
+
+  banner.className = week1Schedule.allStudyDaysComplete ? 'adaptive-bar ahead' : 'adaptive-bar';
+  banner.innerHTML = `
+    <div>📅 <strong>Hoje: ${todayLabel}</strong> · ${focusInfo}</div>
+    <div class="adaptive-bar-actions">
+      ${week1Schedule.allStudyDaysComplete && !state.checked.w1 ? '<button class="primary" onclick="completeWeek1FromBanner()">✓ Concluir Semana 1 (+50 XP)</button>' : ''}
+      <button onclick="recalculateScheduleNow()">🔄 Recalcular com hoje</button>
+    </div>
+  `;
+
   const container = document.getElementById('week1Container');
   container.innerHTML = '';
 
-  for (const day of WEEK1_DAYS) {
-    const doneCount = day.tasks.filter(t => state.checked[t.id]).length;
-    const totalCount = day.tasks.length;
-    const isComplete = doneCount === totalCount;
-
+  for (const day of week1Schedule.days) {
     const card = document.createElement('div');
     card.className = 'day-card';
-    if (state.chaosMode && day.id === 'd6') card.classList.add('chaos-hidden');
+    if (day.isCurrentFocus) card.classList.add('current-focus');
+    if (state.chaosMode && day.isWeekendCard) card.classList.add('chaos-hidden');
 
     const tasksHtml = day.tasks
       .filter(t => !state.chaosMode || t.id.endsWith('_t2') || t.id.endsWith('_t1'))
@@ -1255,8 +1676,8 @@ function renderWeek1() {
 
     card.innerHTML = `
       <div class="day-header">
-        <div class="day-title">${day.title}</div>
-        <div class="day-badge ${isComplete ? 'done' : ''}">${doneCount}/${totalCount} feitas ${isComplete && day.id !== 'd6' ? '· +25 XP bônus' : ''}</div>
+        <div class="day-title">${day.displayTitle}${day.isCurrentFocus ? '<span class="focus-pill">🎯 Meta Atual</span>' : ''}</div>
+        <div class="day-badge ${day.isComplete ? 'done' : ''}">${day.doneCount}/${day.totalCount} feitas ${day.isComplete && !day.isWeekendCard ? '· +25 XP bônus' : ''}</div>
       </div>
       ${tasksHtml}
     `;
@@ -1264,14 +1685,36 @@ function renderWeek1() {
   }
 }
 
-function renderProjectsAndWeeks() {
+function renderProjectsAndWeeks(roadmapSchedule) {
+  const banner = document.getElementById('adaptiveBannerRoadmap');
+  banner.className = `adaptive-bar ${roadmapSchedule.paceKind === 'ahead' ? 'ahead' : roadmapSchedule.paceKind === 'compressed' ? 'compressed' : ''}`.trim();
+  banner.innerHTML = `
+    <div>${roadmapSchedule.paceMessage}</div>
+    <div class="adaptive-bar-actions">
+      <button onclick="recalculateScheduleNow()">🔄 Recalcular com hoje</button>
+    </div>
+  `;
+
+  document.getElementById('appsStartLabel').textContent = roadmapSchedule.appsWeekRange;
+  document.getElementById('roadmapRangeLabel').textContent = roadmapSchedule.rangeLabel;
+
   const projBox = document.getElementById('projectsContainer');
   projBox.innerHTML = PROJECTS.map(p => {
     const checked = !!state.checked[p.id];
+    const targetWeek = roadmapSchedule.weekById[p.weekId];
+    const projCompletedAt = checked ? parseLocalISO(state.completedAt && state.completedAt[p.id]) : null;
+    let statusLine = '';
+    if (checked) {
+      statusLine = projCompletedAt ? `✓ Publicado em ${formatDDMM(projCompletedAt)} (+150 XP)` : '✓ Publicado! (+150 XP)';
+    } else if (targetWeek) {
+      statusLine = `📅 Previsão atual: Semana ${targetWeek.num} (${targetWeek.dateLabel})`;
+    }
+
     return `
       <div class="project-card">
         <h3>${p.title}</h3>
         <p>${p.desc}</p>
+        <div class="muted" style="margin-bottom:8px;font-size:0.79rem;">${statusLine}</div>
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.86rem;">
           <input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleTask('${p.id}')" style="width:16px;height:16px;accent-color:var(--green);">
           <span>${checked ? 'Publicado! (+150 XP)' : 'Marcar como publicado (+150 XP)'}</span>
@@ -1281,12 +1724,16 @@ function renderProjectsAndWeeks() {
   }).join('');
 
   const weeksBox = document.getElementById('weeksContainer');
-  weeksBox.innerHTML = WEEKS.map(w => {
-    const checked = !!state.checked[w.id];
+  weeksBox.innerHTML = roadmapSchedule.weeks.map(w => {
     return `
-      <div class="task-item ${checked ? 'checked' : ''}">
-        <input type="checkbox" id="${w.id}" ${checked ? 'checked' : ''} onchange="toggleTask('${w.id}')">
-        <label class="task-label" for="${w.id}">${w.text}<span class="tag tag-xp">+${w.xp} XP</span></label>
+      <div class="task-item ${w.isComplete ? 'checked' : ''} ${w.isCurrentFocus ? 'current-focus' : ''}">
+        <input type="checkbox" id="${w.id}" ${w.isComplete ? 'checked' : ''} onchange="toggleTask('${w.id}')">
+        <label class="task-label" for="${w.id}">
+          <span class="week-date-pill ${w.isComplete ? 'done' : ''}">${w.dateLabel}${w.holidayTag}</span>
+          <strong>Semana ${w.num}:</strong> ${w.summary}
+          ${w.isCurrentFocus ? '<span class="focus-pill">🎯 Etapa Atual</span>' : ''}
+          <span class="tag tag-xp">+${w.xp} XP</span>
+        </label>
       </div>
     `;
   }).join('');
@@ -1368,10 +1815,20 @@ function renderSyncBadge() {
   }
 }
 
-function renderAll() {
-  updateCountdown();
+let lastRenderedDate = todayISO();
 
-  const today = todayISO();
+function recalculateScheduleNow() {
+  lastRenderedDate = todayISO();
+  renderAll();
+}
+
+function renderAll() {
+  const todayObj = startOfToday();
+  const today = toISODate(todayObj);
+  lastRenderedDate = today;
+
+  updateCountdown(todayObj);
+
   if (state.blocksDate !== today) {
     state.blocksDate = today;
     state.blocksToday = 0;
@@ -1410,9 +1867,12 @@ function renderAll() {
     bookEl.value = state.currentBook || '';
   }
 
+  const week1Schedule = computeWeek1Schedule(todayObj, state);
+  const roadmapSchedule = computeRoadmapSchedule(todayObj, week1Schedule, state);
+
   renderTabs();
-  renderWeek1();
-  renderProjectsAndWeeks();
+  renderWeek1(todayObj, week1Schedule);
+  renderProjectsAndWeeks(roadmapSchedule);
   renderReadingDays();
   renderSyncBadge();
 }
@@ -1892,6 +2352,12 @@ function resetAll() {
   saveState(true);
   renderAll();
 }
+
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && todayISO() !== lastRenderedDate) {
+    renderAll();
+  }
+});
 
 renderAll();
 updateTimerUI();
