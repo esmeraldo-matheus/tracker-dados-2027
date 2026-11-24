@@ -164,7 +164,7 @@
   /* Stats grid */
   .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(195px, 1fr));
     gap: 12px;
     margin-top: 16px;
   }
@@ -190,18 +190,53 @@
   }
 
   .stat-value.countdown-days {
-    font-size: 1.1rem;
+    font-size: 1.08rem;
     line-height: 1.25;
   }
 
   .countdown-clock {
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     font-variant-numeric: tabular-nums;
-    font-size: 0.98rem;
+    font-size: 0.92rem;
     font-weight: 700;
     color: #93c5fd;
     margin-top: 5px;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.02em;
+  }
+
+  .realtime-clock {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 0.96rem;
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--text);
+    margin-top: 3px;
+  }
+
+  .eod-countdown {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: #fbbf24;
+    margin-top: 5px;
+  }
+
+  .day-progress-wrap {
+    margin-top: 6px;
+    height: 4px;
+    background: #1f2937;
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .day-progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #38bdf8, #f59e0b);
+    border-radius: 999px;
+    transition: width 0.4s ease;
   }
 
   .stat-sub {
@@ -625,7 +660,7 @@
     margin-top: 8px;
   }
 
-  /* Avatar Pixel Art (Estilo Tibia / Habbo) */
+  /* Avatar Pixel Art */
   .avatar-stage {
     background: #0b0f16;
     border: 1px solid var(--border);
@@ -637,8 +672,8 @@
 
   #avatarCanvas {
     width: 100%;
-    max-width: 288px;
-    aspect-ratio: 96 / 84;
+    max-width: 312px;
+    aspect-ratio: 144 / 108;
     image-rendering: pixelated;
     image-rendering: crisp-edges;
     border-radius: 8px;
@@ -646,6 +681,43 @@
     background: #10151d;
     display: block;
     margin: 0 auto;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .avatar-status-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    margin-top: 7px;
+    font-size: 0.74rem;
+    color: var(--muted);
+  }
+
+  .avatar-state-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 1px solid #2a364a;
+    background: #131b28;
+    color: #cbd5e1;
+    font-weight: 600;
+    font-size: 0.72rem;
+  }
+
+  .avatar-state-pill.focus {
+    border-color: rgba(56, 189, 248, 0.5);
+    background: rgba(14, 116, 144, 0.25);
+    color: #7dd3fc;
+  }
+
+  .avatar-state-pill.read {
+    border-color: rgba(245, 158, 11, 0.5);
+    background: rgba(180, 83, 9, 0.25);
+    color: #fde68a;
   }
 
   .preview-banner {
@@ -880,7 +952,16 @@
       <div class="stat-box">
         <div class="stat-label">Contagem Regressiva</div>
         <div class="stat-value countdown-days" id="daysLeft">-- Dias até 01/02/2027</div>
-        <div class="countdown-clock" id="liveCountdownClock">⏱ --:--:--</div>
+        <div class="countdown-clock" id="liveCountdownClock">⏳ --d --h --m --s</div>
+      </div>
+
+      <div class="stat-box">
+        <div class="stat-label">Relógio &amp; Fim do Dia</div>
+        <div class="realtime-clock" id="realTimeClock">🕒 --/--/---- · --:--:--</div>
+        <div class="eod-countdown" id="endOfDayCountdown">🌙 Fim do dia em --h --m --s</div>
+        <div class="day-progress-wrap" title="Progresso do dia atual">
+          <div class="day-progress-fill" id="dayProgressBar"></div>
+        </div>
       </div>
 
       <div class="stat-box">
@@ -912,12 +993,16 @@
       <!-- AVATAR PIXEL ART -->
       <div class="card" id="avatarCard">
         <h2>
-          <span>🧙‍♂️ Avatar (Tibia / Habbo)</span>
+          <span>🧙‍♂️ Evolução do Personagem</span>
           <button style="padding:4px 8px;font-size:0.75rem;" id="previewAvatarBtn" onclick="cycleAvatarPreview()">👁 Simular Evolução</button>
         </h2>
         <div class="preview-banner" id="avatarPreviewNote"></div>
         <div class="avatar-stage">
-          <canvas id="avatarCanvas" width="96" height="84"></canvas>
+          <canvas id="avatarCanvas" width="144" height="108" title="Clique no personagem para interagir!"></canvas>
+          <div class="avatar-status-row">
+            <span class="avatar-state-pill" id="avatarStateBadge">🎮 Estado: Vigília</span>
+            <span id="avatarSkyBadge">🌙 Noite</span>
+          </div>
         </div>
         <div class="skills-list" id="skillsList"></div>
         <div class="muted" style="font-size:0.76rem;">Equipamentos &amp; Sala desbloqueados:</div>
@@ -1562,9 +1647,9 @@ function calcSkillAreas(st = state) {
   }
 
   const techUnlocks = ['Headset + Notebook', 'Visor Cyber + Dual-Monitor', 'Manto Technomancer + Runas', 'Domínio máximo'];
-  const readUnlocks = ['Spellbook na mão', 'Estante estilo Habbo', 'Tomo Arcano + Partículas', 'Sabedoria máxima'];
+  const readUnlocks = ['Grimório de Bolso', 'Estante de Livros', 'Tomo Arcano + Partículas', 'Sabedoria máxima'];
   const dataUnlocks = ['Tapete + Gráfico Knaflic', 'Holograma + Crachá + Bio', 'Coroa + Troféu Portfólio', 'Maestria em Dados'];
-  const focusUnlocks = ['Tocha Tibia animada', 'Aura Verde + Caneca', 'Coruja + Aura Estelar', 'Constância inabalável'];
+  const focusUnlocks = ['Tocha de Parede', 'Aura Verde + Caneca', 'Coruja + Aura Estelar', 'Constância inabalável'];
 
   return {
     tech:  { key: 'tech',  icon: '💻', label: 'Código & SQL',        color: '#38bdf8', xp: techXp,  ...techInfo,  nextUnlock: techUnlocks[techInfo.tier] },
@@ -1591,15 +1676,43 @@ function getLevelInfo(xp) {
 }
 
 function updateCountdown() {
-  const targetMs = TARGET_DEADLINE.getTime();
-  const diffMs = Math.max(0, targetMs - Date.now());
+  const now = new Date();
+  const nowMs = now.getTime();
+
+  // 1. Contagem regressiva explícita até a meta (01/02/2027 00:00:00)
+  const diffMs = Math.max(0, TARGET_DEADLINE.getTime() - nowMs);
   const totalSec = Math.floor(diffMs / 1000);
   const days = Math.floor(totalSec / 86400);
   const hours = String(Math.floor((totalSec % 86400) / 3600)).padStart(2, '0');
   const mins = String(Math.floor((totalSec % 3600) / 60)).padStart(2, '0');
   const secs = String(totalSec % 60).padStart(2, '0');
+
   document.getElementById('daysLeft').textContent = `${days} Dias até 01/02/2027`;
-  document.getElementById('liveCountdownClock').textContent = `⏱ ${hours}:${mins}:${secs}`;
+  document.getElementById('liveCountdownClock').textContent = `⏳ ${days}d ${hours}h ${mins}m ${secs}s`;
+
+  // 2. Relógio/Data em tempo real + countdown até o fim do dia (23:59:59)
+  const wday = WEEKDAYS_PT[now.getDay()];
+  const dd = String(now.getDate()).padStart(2, '0');
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const yyyy = now.getFullYear();
+  const nowHH = String(now.getHours()).padStart(2, '0');
+  const nowMM = String(now.getMinutes()).padStart(2, '0');
+  const nowSS = String(now.getSeconds()).padStart(2, '0');
+
+  const dayStartMs = new Date(yyyy, now.getMonth(), now.getDate(), 0, 0, 0, 0).getTime();
+  const dayEndMs = new Date(yyyy, now.getMonth(), now.getDate(), 23, 59, 59, 999).getTime();
+  const eodSec = Math.max(0, Math.floor((dayEndMs - nowMs) / 1000));
+  const eodH = String(Math.floor(eodSec / 3600)).padStart(2, '0');
+  const eodM = String(Math.floor((eodSec % 3600) / 60)).padStart(2, '0');
+  const eodS = String(eodSec % 60).padStart(2, '0');
+  const pctDay = Math.min(100, Math.max(0, ((nowMs - dayStartMs) / 86400000) * 100));
+
+  const clockEl = document.getElementById('realTimeClock');
+  const eodEl = document.getElementById('endOfDayCountdown');
+  const barEl = document.getElementById('dayProgressBar');
+  if (clockEl) clockEl.textContent = `🕒 ${wday}, ${dd}/${mm}/${yyyy} · ${nowHH}:${nowMM}:${nowSS}`;
+  if (eodEl) eodEl.textContent = `🌙 Fim do dia em ${eodH}h ${eodM}m ${eodS}s`;
+  if (barEl) barEl.style.width = `${pctDay.toFixed(1)}%`;
 }
 
 function toggleTask(id) {
@@ -2071,6 +2184,11 @@ function renderSyncBadge() {
 let lastRenderedDate = todayISO();
 let avatarPreviewStage = 0; // 0 = Real, 1 = Tier 1, 2 = Tier 2, 3 = Tier 3 Mestre
 let avatarAnimFrame = 0;
+let avatarParticles = [];
+let avatarJumpFrames = 0;
+let avatarFloatText = null;
+let avatarClickIdx = 0;
+let avatarTileSheet = null;
 
 function cycleAvatarPreview() {
   avatarPreviewStage = (avatarPreviewStage + 1) % 4;
@@ -2090,8 +2208,179 @@ function getEffectiveSkills() {
 
 function px(ctx, x, y, w, h, color) {
   ctx.fillStyle = color;
-  ctx.fillRect(x, y, w, h);
+  ctx.fillRect(Math.round(x), Math.round(y), w, h);
 }
+
+// Renderiza sprites indexados em matriz de pixels (run-length horizontal por linha)
+function drawSpriteMatrix(ctx, rows, palette, ox, oy) {
+  for (let r = 0; r < rows.length; r++) {
+    const row = rows[r];
+    let c = 0;
+    while (c < row.length) {
+      const ch = row[c];
+      if (ch === '.' || !palette[ch]) {
+        c++;
+        continue;
+      }
+      let end = c + 1;
+      while (end < row.length && row[end] === ch) end++;
+      ctx.fillStyle = palette[ch];
+      ctx.fillRect(Math.round(ox + c), Math.round(oy + r), end - c, 1);
+      c = end;
+    }
+  }
+}
+
+// Mapa 2D do estúdio (18 colunas x 14 linhas de tiles 8x8 -> 144x108)
+const ROOM_TILE_MAP = [
+  [0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1],
+  [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0],
+  [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1],
+  [0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0],
+  [1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0],
+  [0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1],
+  [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+  [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
+  [4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3],
+  [3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4],
+  [4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3],
+  [3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4],
+  [4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3],
+  [3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4]
+];
+
+// Pré-renderiza spritesheet offscreen 48x8 (6 células de 8x8) para drawImage por índice
+function ensureRoomTileSheet() {
+  if (avatarTileSheet || typeof document === 'undefined') return avatarTileSheet;
+  const sheet = document.createElement('canvas');
+  sheet.width = 48;
+  sheet.height = 8;
+  const tctx = sheet.getContext('2d');
+  if (!tctx) return null;
+
+  // Tile 0: Parede base com leve textura
+  px(tctx, 0, 0, 8, 8, '#17202d');
+  px(tctx, 0, 7, 8, 1, '#141c28');
+  px(tctx, 1, 2, 3, 1, '#1d2838');
+
+  // Tile 1: Parede com tijolo destacado
+  px(tctx, 8, 0, 8, 8, '#17202d');
+  px(tctx, 9, 1, 6, 3, '#1d293a');
+  px(tctx, 9, 1, 6, 1, '#243347');
+  px(tctx, 8, 5, 4, 2, '#1c2636');
+
+  // Tile 2: Lambri / rodapé de madeira (wainscoting)
+  px(tctx, 16, 0, 8, 1, '#3b2b20');
+  px(tctx, 16, 1, 8, 1, '#281d16');
+  px(tctx, 16, 2, 8, 5, '#221914');
+  px(tctx, 18, 3, 4, 3, '#2d211a');
+  px(tctx, 16, 7, 8, 1, '#0b0e14');
+
+  // Tile 3: Piso claro texturizado
+  px(tctx, 24, 0, 8, 8, '#1a2332');
+  px(tctx, 24, 0, 8, 1, '#202b3d');
+  px(tctx, 25, 3, 3, 1, '#1f2a3c');
+
+  // Tile 4: Piso escuro texturizado
+  px(tctx, 32, 0, 8, 8, '#131a25');
+  px(tctx, 32, 0, 8, 1, '#18212f');
+  px(tctx, 35, 5, 3, 1, '#18212e');
+
+  // Tile 5: Faixa superior do piso com sombra projetada da parede
+  px(tctx, 40, 0, 8, 2, '#0e131c');
+  px(tctx, 40, 2, 8, 6, '#151c28');
+  px(tctx, 41, 4, 3, 1, '#1a2332');
+
+  avatarTileSheet = sheet;
+  return avatarTileSheet;
+}
+
+function getAvatarModeState() {
+  if (typeof timerRunning !== 'undefined' && timerRunning) {
+    if (timerMode === 'read') return 'READING';
+    if (timerMode === 'break') return 'BREAK';
+    return 'FOCUS';
+  }
+  return 'IDLE';
+}
+
+function getSkyMode(hour) {
+  if (hour >= 5 && hour < 7) return { kind: 'dawn', label: '🌅 Amanhecer' };
+  if (hour >= 7 && hour < 17) return { kind: 'day', label: '☀️ Dia' };
+  if (hour >= 17 && hour < 19) return { kind: 'sunset', label: '🌇 Entardecer' };
+  return { kind: 'night', label: '🌙 Noite' };
+}
+
+function spawnAvatarClickBurst(gx, gy) {
+  const palette = ['#facc15', '#38bdf8', '#4ade80', '#f472b6', '#ffffff'];
+  for (let i = 0; i < 14; i++) {
+    const angle = (Math.PI * 2 * i) / 14 + (Math.random() * 0.35 - 0.17);
+    const speed = 1.1 + Math.random() * 1.9;
+    avatarParticles.push({
+      x: gx,
+      y: gy,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed - 1.2,
+      life: 10 + Math.floor(Math.random() * 5),
+      color: palette[i % palette.length]
+    });
+  }
+  avatarJumpFrames = 3;
+  const msgs = ['+FOCO!', 'SQL!', 'DADOS!', '+XP!', 'PYTHON!'];
+  avatarFloatText = {
+    text: msgs[avatarClickIdx % msgs.length],
+    x: 72,
+    y: 35,
+    life: 12
+  };
+  avatarClickIdx += 1;
+}
+
+function handleAvatarCanvasClick(evt) {
+  const canvas = document.getElementById('avatarCanvas');
+  if (!canvas) return;
+  const rect = canvas.getBoundingClientRect();
+  if (!rect.width || !rect.height) return;
+  const gx = Math.round(((evt.clientX - rect.left) / rect.width) * canvas.width);
+  const gy = Math.round(((evt.clientY - rect.top) / rect.height) * canvas.height);
+  spawnAvatarClickBurst(gx, gy);
+  drawPixelAvatar(avatarAnimFrame);
+}
+
+function updateAvatarStatusBadges(modeState, sky) {
+  const stateEl = document.getElementById('avatarStateBadge');
+  if (stateEl) {
+    stateEl.classList.remove('focus', 'read');
+    if (modeState === 'FOCUS') {
+      stateEl.classList.add('focus');
+      stateEl.textContent = '⚡ Estado: Em Foco';
+    } else if (modeState === 'READING') {
+      stateEl.classList.add('read');
+      stateEl.textContent = '📖 Estado: Lendo';
+    } else if (modeState === 'BREAK') {
+      stateEl.textContent = '☕ Estado: Pausa';
+    } else {
+      stateEl.textContent = '🎮 Estado: Vigília';
+    }
+  }
+  const skyEl = document.getElementById('avatarSkyBadge');
+  if (skyEl) skyEl.textContent = sky.label;
+}
+
+const AVATAR_HEAD_SPRITE = [
+  '....OOOOOO....',
+  '..OOhHHHHdOO..',
+  '.OhHHHHHHHHdO.',
+  '.OHHHdHHdHHdO.',
+  '.OHdSSssSSddO.',
+  '.OdSSssssSSwO.',
+  '.OSSSSSSwSSwO.',
+  '.OSSSSSSSSSwO.',
+  '.OScSSSSSScwO.',
+  '..OSSSmmsSwO..',
+  '...OSSSSSwO...',
+  '....OOOOOO....'
+];
 
 function drawPixelAvatar(frame = 0) {
   const canvas = document.getElementById('avatarCanvas');
@@ -2102,251 +2391,366 @@ function drawPixelAvatar(frame = 0) {
   const skills = getEffectiveSkills();
   const xp = avatarPreviewStage === 0 ? calcXP() : avatarPreviewStage * 900;
   const lvl = getLevelInfo(xp);
-  const bob = frame % 2;
+  const modeState = getAvatarModeState();
+  const nowHour = new Date().getHours();
+  const sky = getSkyMode(nowHour);
+  updateAvatarStatusBadges(modeState, sky);
+
+  const bob = modeState === 'FOCUS' ? (frame % 2) : (Math.floor(frame / 2) % 2);
   const alt = frame % 4;
+  const isBlinking = (frame % 16) >= 14;
   const outline = '#0b0e14';
 
   ctx.imageSmoothingEnabled = false;
-  ctx.clearRect(0, 0, 96, 84);
+  ctx.clearRect(0, 0, 144, 108);
 
-  // 1. Parede estilo Tibia / Habbo
-  px(ctx, 0, 0, 96, 46, '#18202c');
-  px(ctx, 0, 38, 96, 2, '#243044');
-  px(ctx, 0, 40, 96, 6, '#222b3a');
-  px(ctx, 0, 46, 96, 1, outline);
-
-  // Tijolos sutis na parede
-  for (let bx = 4; bx < 92; bx += 14) {
-    px(ctx, bx, 12, 4, 2, '#1f2937');
-    px(ctx, bx + 6, 28, 4, 2, '#1f2937');
-  }
-
-  // Janela noturna à esquerda
-  px(ctx, 4, 11, 14, 18, outline);
-  px(ctx, 5, 12, 12, 16, '#0f172a');
-  px(ctx, 10, 12, 2, 16, '#334155');
-  px(ctx, 5, 19, 12, 2, '#334155');
-  px(ctx, 7, 15, 1, 1, '#fef08a');
-  px(ctx, 14, 14, 1, 1, '#e2e8f0');
-  px(ctx, 13, 23, 1, 1, '#93c5fd');
-
-  // 2. Piso quadriculado isométrico/clássico
-  for (let ty = 47; ty < 84; ty += 6) {
-    for (let tx = 0; tx < 96; tx += 6) {
-      const even = ((tx / 6) + Math.floor((ty - 47) / 6)) % 2 === 0;
-      px(ctx, tx, ty, 6, 6, even ? '#141a24' : '#1b2331');
+  // 1. CENÁRIO POR TILEMAP 2D (Mapa[linha][coluna] + spritesheet 8x8)
+  const tileSheet = ensureRoomTileSheet();
+  if (tileSheet) {
+    for (let row = 0; row < ROOM_TILE_MAP.length; row++) {
+      for (let col = 0; col < ROOM_TILE_MAP[row].length; col++) {
+        const tileId = ROOM_TILE_MAP[row][col];
+        ctx.drawImage(tileSheet, tileId * 8, 0, 8, 8, col * 8, row * 8, 8, 8);
+      }
     }
+  } else {
+    px(ctx, 0, 0, 144, 56, '#17202d');
+    px(ctx, 0, 56, 144, 52, '#161f2c');
   }
 
-  // DATA TIER 1: Tapete azul de guilda + Quadro de Barras Pré-Atentivo (Knaflic)
-  if (skills.data.tier >= 1) {
-    px(ctx, 27, 54, 42, 22, '#0b0e14');
-    px(ctx, 28, 55, 40, 20, '#92400e');
-    px(ctx, 30, 57, 36, 16, '#1e3a8a');
-    px(ctx, 31, 58, 34, 14, '#1d4ed8');
-    // Quadro na parede (barras cinzas + 1 barra focal pré-atentiva)
-    px(ctx, 34, 14, 22, 16, outline);
-    px(ctx, 35, 15, 20, 14, '#0f172a');
-    px(ctx, 37, 23, 3, 4, '#64748b');
-    px(ctx, 41, 21, 3, 6, '#64748b');
-    px(ctx, 45, 17, 3, 10, '#38bdf8');
-    px(ctx, 49, 22, 3, 5, '#64748b');
-    px(ctx, 37, 27, 15, 1, '#475569');
+  // 2. JANELA COM CÉU SINCRONIZADO AO RELÓGIO REAL (x=5..27, y=11..36)
+  px(ctx, 5, 11, 22, 25, outline);
+  px(ctx, 6, 12, 20, 23, '#5c4028');
+  if (sky.kind === 'day') {
+    px(ctx, 7, 13, 18, 7, '#0284c7');
+    px(ctx, 7, 20, 18, 7, '#38bdf8');
+    px(ctx, 7, 27, 18, 7, '#7dd3fc');
+    // Sol + nuvem em movimento
+    px(ctx, 20, 15, 3, 3, '#fde047');
+    const cloudX = 8 + (Math.floor(frame / 3) % 9);
+    px(ctx, cloudX, 22, 6, 2, '#f8fafc');
+    px(ctx, cloudX + 1, 21, 4, 1, '#e2e8f0');
+    px(ctx, 7, 56, 24, 12, 'rgba(125, 211, 252, 0.08)');
+  } else if (sky.kind === 'dawn' || sky.kind === 'sunset') {
+    px(ctx, 7, 13, 18, 7, '#4c1d95');
+    px(ctx, 7, 20, 18, 7, '#ea580c');
+    px(ctx, 7, 27, 18, 7, '#facc15');
+    px(ctx, 14, 24, 4, 4, '#fef08a');
+    px(ctx, 7, 56, 24, 12, 'rgba(251, 146, 60, 0.09)');
+  } else {
+    px(ctx, 7, 13, 18, 10, '#080e21');
+    px(ctx, 7, 23, 18, 11, '#0f172a');
+    // Lua crescente + estrelas cintilantes
+    px(ctx, 20, 15, 3, 4, '#fef08a');
+    px(ctx, 21, 16, 2, 2, '#080e21');
+    px(ctx, 9, 16, 1, 1, alt === 0 ? '#ffffff' : '#fef08a');
+    px(ctx, 13, 21, 1, 1, alt === 2 ? '#ffffff' : '#93c5fd');
+    px(ctx, 18, 29, 1, 1, '#e2e8f0');
+    px(ctx, 10, 30, 1, 1, alt === 1 ? '#fef08a' : '#64748b');
+    px(ctx, 7, 56, 24, 12, 'rgba(96, 165, 250, 0.06)');
   }
+  // Caixilho da janela + peitoril
+  px(ctx, 15, 13, 2, 21, '#3b2818');
+  px(ctx, 7, 23, 18, 2, '#3b2818');
+  px(ctx, 4, 35, 24, 2, '#785233');
 
-  // READ TIER 2: Estante estilo Habbo
-  if (skills.read.tier >= 2) {
-    px(ctx, 59, 13, 16, 33, outline);
-    px(ctx, 60, 14, 14, 31, '#78350f');
-    px(ctx, 61, 15, 12, 7, '#451a03');
-    px(ctx, 61, 24, 12, 7, '#451a03');
-    px(ctx, 61, 33, 12, 8, '#451a03');
-    // Livros coloridos
-    px(ctx, 62, 16, 2, 6, '#ef4444');
-    px(ctx, 64, 17, 2, 5, '#3b82f6');
-    px(ctx, 66, 16, 2, 6, '#22c55e');
-    px(ctx, 69, 16, 3, 6, '#facc15');
-    px(ctx, 62, 25, 3, 6, '#a855f7');
-    px(ctx, 65, 26, 2, 5, '#38bdf8');
-    px(ctx, 68, 25, 2, 6, '#f97316');
-    px(ctx, 70, 26, 2, 5, '#e2e8f0');
-    px(ctx, 62, 34, 2, 7, '#22c55e');
-    px(ctx, 65, 35, 3, 6, '#ef4444');
-    px(ctx, 69, 34, 3, 7, '#eab308');
-  }
-
-  // FOCUS TIER 1: Tocha de parede estilo Tibia
+  // 3. FOCUS TIER 1: Tocha de parede com iluminação ambiente (x=31..35)
   if (skills.focus.tier >= 1) {
-    px(ctx, 23, 24, 4, 10, outline);
-    px(ctx, 24, 25, 2, 8, '#78350f');
-    px(ctx, 23, 25, 4, 2, '#64748b');
-    // Chama animada
-    px(ctx, 23, 20 - (bob ? 1 : 0), 4, 4, '#f97316');
-    px(ctx, 24, 19 - (bob ? 1 : 0), 2, 3, '#facc15');
-    px(ctx, 24, 21, 2, 2, '#fef08a');
+    const fShift = alt % 2 === 0 ? 0 : 1;
+    px(ctx, 27, 16, 12, 16, fShift ? 'rgba(251, 146, 60, 0.14)' : 'rgba(249, 115, 22, 0.10)');
+    px(ctx, 31, 25, 4, 12, outline);
+    px(ctx, 32, 26, 2, 10, '#78350f');
+    px(ctx, 31, 26, 4, 2, '#64748b');
+    px(ctx, 31, 21 - fShift, 4, 4, '#ea580c');
+    px(ctx, 32, 20 - fShift, 2, 4, '#facc15');
+    px(ctx, 32, 22, 2, 2, '#fef08a');
+    if (alt === 1) px(ctx, 33, 17, 1, 1, '#fde047');
   }
 
-  // TECH DESK (direita): base da mesa sempre quando tech >= 1, senão banquinho simples
+  // 4. DATA TIER 1: Gráfico Knaflic na parede (x=39..57) + Tapete no piso (x=45..99)
+  if (skills.data.tier >= 1) {
+    // Quadro com barra focal pré-atentiva
+    px(ctx, 39, 13, 18, 16, outline);
+    px(ctx, 40, 14, 16, 14, '#78350f');
+    px(ctx, 41, 15, 14, 12, '#0f172a');
+    px(ctx, 42, 22, 2, 4, '#64748b');
+    px(ctx, 45, 20, 2, 6, '#64748b');
+    px(ctx, 48, 17, 2, 9, '#38bdf8');
+    px(ctx, 48, 17, 2, 1, '#bae6fd');
+    px(ctx, 51, 21, 2, 5, '#64748b');
+    px(ctx, 42, 26, 12, 1, '#475569');
+
+    // Tapete de estudo bordado sob o personagem
+    px(ctx, 45, 70, 54, 28, outline);
+    px(ctx, 46, 71, 52, 26, '#92400e');
+    px(ctx, 47, 72, 50, 24, '#b45309');
+    px(ctx, 49, 74, 46, 20, '#1e3a8a');
+    px(ctx, 51, 76, 42, 16, '#1d4ed8');
+    px(ctx, 68, 81, 8, 6, '#2563eb');
+    px(ctx, 70, 83, 4, 2, '#60a5fa');
+  }
+
+  // 5. READ TIER 2: Estante de madeira escura + livros + vasinho (x=89..110)
+  if (skills.read.tier >= 2) {
+    // Vaso decorativo no topo
+    px(ctx, 97, 11, 5, 3, '#b45309');
+    px(ctx, 98, 9, 3, 2, '#22c55e');
+    px(ctx, 99, 8, 1, 2, '#4ade80');
+
+    px(ctx, 89, 14, 21, 41, outline);
+    px(ctx, 90, 15, 19, 39, '#6b3b18');
+    px(ctx, 91, 16, 17, 9, '#3b1e0a');
+    px(ctx, 91, 27, 17, 9, '#3b1e0a');
+    px(ctx, 91, 38, 17, 10, '#3b1e0a');
+    // Prateleira 1
+    px(ctx, 92, 17, 2, 8, '#ef4444');
+    px(ctx, 94, 18, 2, 7, '#3b82f6');
+    px(ctx, 96, 17, 3, 8, '#22c55e');
+    px(ctx, 99, 19, 2, 6, '#facc15');
+    px(ctx, 102, 17, 3, 8, '#a855f7');
+    px(ctx, 105, 18, 2, 7, '#cbd5e1');
+    // Prateleira 2
+    px(ctx, 92, 28, 3, 8, '#a855f7');
+    px(ctx, 95, 29, 2, 7, '#38bdf8');
+    px(ctx, 98, 28, 3, 8, '#f97316');
+    px(ctx, 102, 30, 5, 6, '#94a3b8'); // rolo pergaminho / caixa
+    // Prateleira 3
+    px(ctx, 92, 39, 3, 9, '#22c55e');
+    px(ctx, 95, 41, 3, 7, '#ef4444');
+    px(ctx, 99, 39, 3, 9, '#eab308');
+    px(ctx, 103, 40, 4, 8, '#1e40af');
+  }
+
+  // 6. TECH DESK & EQUIPAMENTOS DE TRABALHO (x=114..141, y=49..81)
   if (skills.tech.tier >= 1) {
-    px(ctx, 74, 45, 21, 18, outline);
-    px(ctx, 75, 46, 19, 4, '#854d0e');
-    px(ctx, 76, 50, 2, 12, '#713f12');
-    px(ctx, 91, 50, 2, 12, '#713f12');
+    // Tampo e estrutura da mesa
+    px(ctx, 114, 49, 27, 24, outline);
+    px(ctx, 115, 50, 25, 5, '#854d0e');
+    px(ctx, 115, 50, 25, 1, '#a16207');
+    px(ctx, 116, 55, 23, 17, '#161e2b');
+    px(ctx, 116, 55, 3, 17, '#573612');
+    px(ctx, 136, 55, 3, 17, '#573612');
 
     if (skills.tech.tier >= 2) {
-      // Dual Monitor
-      px(ctx, 75, 35, 9, 9, outline);
-      px(ctx, 76, 36, 7, 6, '#0f172a');
-      px(ctx, 77, 37, 4, 1, '#22c55e');
-      px(ctx, 77, 39, 5, 1, '#38bdf8');
-      px(ctx, 78, 44, 3, 2, '#475569');
+      // Dual Monitors + Torre RGB
+      px(ctx, 115, 37, 11, 10, outline);
+      px(ctx, 116, 38, 9, 7, '#0f172a');
+      px(ctx, 117, 39, 5, 1, modeState === 'FOCUS' ? '#4ade80' : '#22c55e');
+      px(ctx, 117, 41, 7, 1, '#38bdf8');
+      px(ctx, 117, 43, alt % 2 ? 6 : 3, 1, '#a7f3d0');
+      px(ctx, 119, 47, 3, 2, '#475569');
 
-      px(ctx, 84, 35, 10, 9, outline);
-      px(ctx, 85, 36, 8, 6, '#0f172a');
-      px(ctx, 86, 37, 5, 1, '#a855f7');
-      px(ctx, 86, 39, 4, 1, '#facc15');
-      px(ctx, 88, 44, 3, 2, '#475569');
+      px(ctx, 126, 37, 12, 10, outline);
+      px(ctx, 127, 38, 10, 7, '#0f172a');
+      px(ctx, 128, 39, 6, 1, '#c084fc');
+      px(ctx, 128, 41, 4, 2, '#facc15');
+      px(ctx, 133, 40, 3, 3, '#38bdf8');
+      px(ctx, 130, 47, 3, 2, '#475569');
+
+      // Mini Torre PC com RGB sob a mesa
+      px(ctx, 128, 60, 7, 11, outline);
+      px(ctx, 129, 61, 5, 9, '#1e293b');
+      const rgbColors = ['#38bdf8', '#a855f7', '#22c55e', '#facc15'];
+      px(ctx, 130, 62, 1, 7, rgbColors[alt]);
     } else {
-      // Notebook Tier 1
-      px(ctx, 78, 39, 10, 6, outline);
-      px(ctx, 79, 40, 8, 4, '#38bdf8');
-      px(ctx, 77, 45, 12, 1, '#94a3b8');
+      // Notebook inicial Tier 1
+      px(ctx, 118, 41, 13, 8, outline);
+      px(ctx, 119, 42, 11, 6, '#0f172a');
+      px(ctx, 120, 43, 8, 1, '#38bdf8');
+      px(ctx, 120, 45, alt % 2 ? 6 : 3, 1, '#e2e8f0');
+      px(ctx, 117, 49, 15, 1, '#94a3b8');
     }
 
-    // Caneca fumegante (focus >= 2)
+    // Caneca de café fumegante (focus >= 2)
     if (skills.focus.tier >= 2) {
-      px(ctx, 90, 42, 3, 3, '#e2e8f0');
-      px(ctx, 91, 39 - bob, 1, 2, '#94a3b8');
+      px(ctx, 136, 46, 4, 4, '#e2e8f0');
+      px(ctx, 139, 47, 1, 2, '#cbd5e1');
+      px(ctx, 137, 43 - (alt % 2), 1, 2, 'rgba(203, 213, 225, 0.75)');
+      px(ctx, 138, 41 - (bob ? 1 : 0), 1, 1, 'rgba(203, 213, 225, 0.5)');
     }
   }
 
-  // DATA TIER 2: Holograma BI + Mini DNA/Planta na mesa esquerda
+  // 7. DATA TIER 2: Consola Holográfica com Dupla Hélice Bioinformática (x=18..33, y=54..82)
   if (skills.data.tier >= 2) {
-    px(ctx, 13, 52, 11, 14, outline);
-    px(ctx, 14, 53, 9, 4, '#64748b');
-    px(ctx, 15, 57, 7, 8, '#334155');
-    // Mini dupla hélice bioinformática
-    px(ctx, 16, 44 + bob, 2, 2, '#22c55e');
-    px(ctx, 19, 44 + bob, 2, 2, '#38bdf8');
-    px(ctx, 17, 46 + bob, 3, 1, '#facc15');
-    px(ctx, 16, 48 + bob, 2, 2, '#38bdf8');
-    px(ctx, 19, 48 + bob, 2, 2, '#22c55e');
+    px(ctx, 19, 62, 13, 18, outline);
+    px(ctx, 20, 63, 11, 4, '#475569');
+    px(ctx, 22, 64, 7, 1, '#38bdf8');
+    px(ctx, 21, 67, 9, 12, '#1e293b');
+    // Hélice animada
+    const helixY = 44 + (bob ? 1 : 0);
+    for (let k = 0; k < 4; k++) {
+      const phase = ((frame + k * 2) % 8);
+      const x1 = phase < 4 ? 22 + phase : 22 + (7 - phase);
+      const x2 = 28 - (x1 - 22);
+      const hy = helixY + k * 4;
+      px(ctx, Math.min(x1, x2), hy + 1, Math.abs(x1 - x2) + 2, 1, 'rgba(250, 204, 21, 0.75)');
+      px(ctx, x1, hy, 2, 2, '#22c55e');
+      px(ctx, x2, hy, 2, 2, '#38bdf8');
+    }
   }
 
-  // DATA TIER 3: Troféu Dourado no pedestal
+  // 8. DATA TIER 3: Troféu Dourado de Portfólio no pedestal (x=4..15, y=66..96)
   if (skills.data.tier >= 3) {
-    px(ctx, 6, 57, 10, 14, outline);
-    px(ctx, 7, 58, 8, 12, '#334155');
-    px(ctx, 8, 50, 6, 6, '#eab308');
-    px(ctx, 9, 51, 4, 3, '#fef08a');
-    px(ctx, 10, 56, 2, 2, '#ca8a04');
+    px(ctx, 4, 72, 12, 20, outline);
+    px(ctx, 5, 73, 10, 18, '#334155');
+    px(ctx, 6, 74, 8, 2, '#475569');
+    px(ctx, 6, 62, 8, 8, outline);
+    px(ctx, 7, 63, 6, 6, '#eab308');
+    px(ctx, 8, 64, 4, 3, '#fef08a');
+    px(ctx, 9, 69, 2, 3, '#ca8a04');
+    if (alt === 0) px(ctx, 11, 61, 1, 1, '#ffffff');
   }
 
-  // FOCUS TIER 3: Coruja mensageira no poleiro
+  // 9. FOCUS TIER 3: Coruja mensageira empoleirada (x=35..44, y=42..62)
   if (skills.focus.tier >= 3) {
-    px(ctx, 20, 34, 2, 12, '#78350f');
-    px(ctx, 18, 33, 6, 2, '#92400e');
-    px(ctx, 19, 27 - bob, 5, 6, outline);
-    px(ctx, 20, 28 - bob, 3, 4, '#cbd5e1');
-    px(ctx, 20, 29 - bob, 1, 1, '#facc15');
-    px(ctx, 22, 29 - bob, 1, 1, '#facc15');
+    px(ctx, 38, 50, 2, 14, '#78350f');
+    px(ctx, 35, 49, 8, 2, '#92400e');
+    const oy = 42 - bob;
+    px(ctx, 36, oy, 7, 8, outline);
+    px(ctx, 37, oy + 1, 5, 6, '#cbd5e1');
+    px(ctx, 38, oy + 3, 3, 3, '#f8fafc');
+    if (!isBlinking) {
+      px(ctx, 37, oy + 2, 2, 2, '#facc15');
+      px(ctx, 40, oy + 2, 2, 2, '#facc15');
+    } else {
+      px(ctx, 37, oy + 3, 2, 1, '#475569');
+      px(ctx, 40, oy + 3, 2, 1, '#475569');
+    }
+    px(ctx, 39, oy + 3, 1, 1, '#f97316');
   }
 
-  // 3. PERSONAGEM CENTRAL (x ~ 41..55, y ~ 30..65)
-  const cx = 48;
-  const py = 33 + bob;
+  // 10. PERSONAGEM PRINCIPAL EM MATRIZ DE PIXELS (cx=72, base y=46..78)
+  const cx = 72;
+  const jumpOffset = avatarJumpFrames > 0 ? -2 : 0;
+  if (avatarJumpFrames > 0) avatarJumpFrames -= 1;
+  const py = 46 + bob + jumpOffset;
 
-  // Aura verde-esmeralda sob os pés (focus >= 2)
+  // Aura verde-esmeralda pulsante sob os pés (focus >= 2)
   if (skills.focus.tier >= 2) {
-    const pulse = alt % 2 === 0 ? 1 : 0;
-    px(ctx, cx - 9 - pulse, 64, 18 + pulse * 2, 4, 'rgba(34, 197, 94, 0.35)');
-    px(ctx, cx - 6, 65, 12, 2, '#22c55e');
+    const pulse = alt % 2 === 0 ? 2 : 0;
+    const auraBoost = modeState === 'FOCUS' ? 2 : 0;
+    px(ctx, cx - 12 - pulse - auraBoost, 76, 24 + (pulse + auraBoost) * 2, 5, 'rgba(34, 197, 94, 0.32)');
+    px(ctx, cx - 8, 77, 16, 3, 'rgba(74, 222, 128, 0.7)');
   }
 
-  // Sombra
-  px(ctx, cx - 6, 64, 12, 2, 'rgba(0,0,0,0.45)');
+  // Sombra aterrada
+  px(ctx, cx - 8, 77, 16, 2, 'rgba(0, 0, 0, 0.45)');
 
-  // Pernas e Botas
+  // Capa traseira Technomancer (tech >= 3)
+  if (skills.tech.tier >= 3) {
+    px(ctx, cx - 9, py + 13, 18, 15, outline);
+    px(ctx, cx - 8, py + 14, 16, 13, '#172554');
+  }
+
+  // Pernas e botas com sombreamento
   px(ctx, cx - 5, py + 23, 10, 9, outline);
   px(ctx, cx - 4, py + 23, 3, 6, '#1e293b');
-  px(ctx, cx + 1, py + 23, 3, 6, '#1e293b');
+  px(ctx, cx + 1, py + 23, 3, 6, '#273549');
   px(ctx, cx - 4, py + 29, 3, 2, '#78350f');
-  px(ctx, cx + 1, py + 29, 3, 2, '#78350f');
+  px(ctx, cx + 1, py + 29, 3, 2, '#92400e');
 
-  // Torso (evolui com tech >= 3 -> Manto Technomancer!)
+  // Tronco evoluído
   px(ctx, cx - 7, py + 12, 14, 12, outline);
   if (skills.tech.tier >= 3) {
-    // Manto Technomancer ciano/índigo
     px(ctx, cx - 6, py + 13, 12, 10, '#1e3a8a');
     px(ctx, cx - 6, py + 13, 3, 3, '#38bdf8');
     px(ctx, cx + 3, py + 13, 3, 3, '#38bdf8');
     px(ctx, cx - 1, py + 13, 2, 10, '#0ea5e9');
   } else if (skills.data.tier >= 1) {
-    // Jaqueta azul tech
     px(ctx, cx - 6, py + 13, 12, 10, '#2563eb');
-    px(ctx, cx - 2, py + 13, 4, 10, '#1e293b');
+    px(ctx, cx - 6, py + 13, 2, 10, '#1d4ed8');
+    px(ctx, cx - 2, py + 13, 4, 10, '#0f172a');
   } else {
-    // Camiseta inicial
     px(ctx, cx - 6, py + 13, 12, 10, '#475569');
+    px(ctx, cx - 6, py + 13, 2, 10, '#334155');
   }
 
-  // Crachá dourado (data >= 2)
+  // Crachá dourado de Dados (data >= 2)
   if (skills.data.tier >= 2) {
     px(ctx, cx + 2, py + 15, 3, 3, '#facc15');
     px(ctx, cx + 3, py + 16, 1, 1, '#fef08a');
   }
 
-  // Braços
-  px(ctx, cx - 9, py + 13, 3, 8, outline);
-  px(ctx, cx - 8, py + 14, 2, 4, skills.tech.tier >= 3 ? '#1e3a8a' : '#334155');
-  px(ctx, cx - 8, py + 18, 2, 2, '#f1c27d');
+  // Braços (pose muda se está LENDO!)
+  const armColor = skills.tech.tier >= 3 ? '#1e3a8a' : (skills.data.tier >= 1 ? '#1d4ed8' : '#334155');
+  if (modeState === 'READING') {
+    // Braços estendidos segurando o livro aberto
+    px(ctx, cx - 9, py + 13, 3, 7, outline);
+    px(ctx, cx - 8, py + 14, 2, 3, armColor);
+    px(ctx, cx - 7, py + 17, 2, 2, '#f1c27d');
 
-  px(ctx, cx + 6, py + 13, 3, 8, outline);
-  px(ctx, cx + 6, py + 14, 2, 4, skills.tech.tier >= 3 ? '#1e3a8a' : '#334155');
-  px(ctx, cx + 6, py + 18, 2, 2, '#f1c27d');
+    px(ctx, cx + 6, py + 13, 3, 7, outline);
+    px(ctx, cx + 6, py + 14, 2, 3, armColor);
+    px(ctx, cx + 5, py + 17, 2, 2, '#f1c27d');
 
-  // READ TIER 1: Spellbook na mão direita (lado esquerdo visual)
-  if (skills.read.tier >= 1) {
-    px(ctx, cx - 12, py + 16, 5, 6, outline);
-    px(ctx, cx - 11, py + 17, 3, 4, '#b91c1c');
-    px(ctx, cx - 11, py + 17, 1, 4, '#facc15');
-  }
-
-  // READ TIER 3: Tomo Arcano flutuante aberto + partículas douradas
-  if (skills.read.tier >= 3) {
-    const by = py + 5 + (alt % 2);
-    px(ctx, cx - 19, by, 9, 6, outline);
-    px(ctx, cx - 18, by + 1, 3, 4, '#fef3c7');
-    px(ctx, cx - 14, by + 1, 3, 4, '#fde68a');
-    px(ctx, cx - 15, by + 1, 1, 4, '#b45309');
-    px(ctx, cx - 17, by - 3 - bob, 1, 1, '#facc15');
-    px(ctx, cx - 12, by - 2 + bob, 1, 1, '#fef08a');
-  }
-
-  // Cabeça estilo Habbo/Tibia
-  px(ctx, cx - 6, py, 12, 13, outline);
-  px(ctx, cx - 5, py + 1, 10, 11, '#f1c27d');
-  // Cabelo castanho escuro
-  px(ctx, cx - 5, py + 1, 10, 4, '#291d14');
-  px(ctx, cx - 6, py + 2, 1, 3, '#291d14');
-  px(ctx, cx + 5, py + 2, 1, 3, '#291d14');
-
-  // Olhos / Visor Cyber (tech >= 2)
-  if (skills.tech.tier >= 2) {
-    px(ctx, cx - 4, py + 6, 8, 3, '#0e7490');
-    px(ctx, cx - 3, py + 7, 6, 1, '#22d3ee');
+    // Livro aberto iluminado no peito
+    px(ctx, cx - 6, py + 16, 12, 7, outline);
+    px(ctx, cx - 5, py + 17, 5, 5, '#fef3c7');
+    px(ctx, cx + 0, py + 17, 5, 5, '#fde68a');
+    px(ctx, cx - 1, py + 17, 2, 5, '#b45309');
+    px(ctx, cx - 3, py + 15, 6, 1, 'rgba(250, 204, 21, 0.7)');
   } else {
-    px(ctx, cx - 3, py + 6, 2, 2, '#1e293b');
-    px(ctx, cx + 1, py + 6, 2, 2, '#1e293b');
+    px(ctx, cx - 9, py + 13, 3, 8, outline);
+    px(ctx, cx - 8, py + 14, 2, 4, armColor);
+    px(ctx, cx - 8, py + 18, 2, 2, '#f1c27d');
+
+    px(ctx, cx + 6, py + 13, 3, 8, outline);
+    px(ctx, cx + 6, py + 14, 2, 4, armColor);
+    px(ctx, cx + 6, py + 18, 2, 2, '#f1c27d');
+
+    // READ TIER 1: Grimório de Bolso na mão esquerda visual
+    if (skills.read.tier >= 1) {
+      px(ctx, cx - 13, py + 16, 6, 7, outline);
+      px(ctx, cx - 12, py + 17, 4, 5, '#b91c1c');
+      px(ctx, cx - 12, py + 17, 1, 5, '#facc15');
+    }
   }
-  // Sorriso leve
-  px(ctx, cx - 2, py + 10, 4, 1, '#9a5b3c');
+
+  // READ TIER 3: Tomo Arcano flutuante + partículas douradas
+  if (skills.read.tier >= 3) {
+    const by = py + 4 + (alt % 2);
+    px(ctx, cx - 22, by, 10, 7, outline);
+    px(ctx, cx - 21, by + 1, 4, 5, '#fef3c7');
+    px(ctx, cx - 16, by + 1, 3, 5, '#fde68a');
+    px(ctx, cx - 17, by + 1, 1, 5, '#b45309');
+    px(ctx, cx - 20, by - 3 - bob, 1, 1, '#facc15');
+    px(ctx, cx - 14, by - 2 + bob, 1, 1, '#fef08a');
+  }
+
+  // Cabeça em matriz indexada (14x12 -> cx - 7, py)
+  drawSpriteMatrix(ctx, AVATAR_HEAD_SPRITE, {
+    O: outline,
+    H: '#3b2516',
+    h: '#5c3a21',
+    d: '#1e120a',
+    S: '#f1c27d',
+    s: '#ffd5a5',
+    w: '#c68642',
+    c: '#e59866',
+    m: '#9a5b3c'
+  }, cx - 7, py);
+
+  // Olhos expressivos com piscada / Visor Cyber
+  const eyeShiftY = modeState === 'READING' ? 1 : 0;
+  if (skills.tech.tier >= 2) {
+    px(ctx, cx - 5, py + 5, 10, 3, '#083344');
+    px(ctx, cx - 4, py + 6, 8, 1, '#22d3ee');
+    px(ctx, cx - 4 + (frame % 7), py + 6, 2, 1, '#ecfeff');
+  } else if (isBlinking) {
+    px(ctx, cx - 3, py + 7, 2, 1, '#3b2516');
+    px(ctx, cx + 1, py + 7, 2, 1, '#3b2516');
+  } else {
+    px(ctx, cx - 3, py + 6 + eyeShiftY, 2, 2, '#1e293b');
+    px(ctx, cx - 3, py + 6 + eyeShiftY, 1, 1, '#ffffff');
+    px(ctx, cx + 1, py + 6 + eyeShiftY, 2, 2, '#1e293b');
+    px(ctx, cx + 1, py + 6 + eyeShiftY, 1, 1, '#ffffff');
+  }
 
   // TECH TIER 1: Headset Tech
   if (skills.tech.tier >= 1) {
-    px(ctx, cx - 5, py - 1, 10, 2, '#0284c7');
-    px(ctx, cx - 7, py + 4, 2, 5, '#38bdf8');
-    px(ctx, cx + 5, py + 4, 2, 5, '#38bdf8');
+    px(ctx, cx - 6, py - 1, 12, 2, '#0284c7');
+    px(ctx, cx - 8, py + 4, 2, 5, '#38bdf8');
+    px(ctx, cx + 6, py + 4, 2, 5, '#38bdf8');
     px(ctx, cx + 4, py + 8, 3, 1, '#0ea5e9');
   }
 
@@ -2360,32 +2764,80 @@ function drawPixelAvatar(frame = 0) {
     px(ctx, cx, py - 2, 1, 1, '#ef4444');
   }
 
-  // TECH TIER 3: Runas Tech flutuantes
+  // TECH TIER 3: Runas de Código / SQL flutuantes
   if (skills.tech.tier >= 3) {
-    const ry = py + 4 + (bob ? -1 : 1);
+    const ry = py + 2 + (bob ? -1 : 1);
     px(ctx, cx + 11, ry, 5, 5, '#083344');
     px(ctx, cx + 12, ry + 1, 3, 1, '#22d3ee');
     px(ctx, cx + 13, ry + 2, 1, 2, '#38bdf8');
-    px(ctx, cx + 16, ry + 8, 3, 3, '#22d3ee');
+    px(ctx, cx + 14, ry + 9, 3, 3, '#38bdf8');
   }
 
-  // FOCUS TIER 3: Partículas estelares no quarto
+  // FOCUS TIER 3: Estrelas / Poeira Estelar ambiente
   if (skills.focus.tier >= 3) {
-    px(ctx, 30 + (alt % 2), 10 + bob, 1, 1, '#fef08a');
-    px(ctx, 72, 10 + (bob ? 1 : 0), 1, 1, '#93c5fd');
+    px(ctx, 52 + (alt % 2), 34 + bob, 1, 1, '#fef08a');
+    px(ctx, 84, 30 + (bob ? 1 : 0), 1, 1, '#93c5fd');
   }
 
-  // 4. Nome verde + Barra estilo Tibia acima da cabeça
-  ctx.font = 'bold 7px monospace';
+  // 11. BALÃO DE ESTADO (FOCO / LENDO)
+  if (modeState === 'FOCUS') {
+    const bx = cx + 11;
+    const by = py - 9 - (alt % 2);
+    px(ctx, bx, by, 21, 9, outline);
+    px(ctx, bx + 1, by + 1, 19, 7, '#0f172a');
+    px(ctx, bx + 2, by + 2, 2, 2, '#facc15');
+    ctx.font = 'bold 5px monospace';
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#7dd3fc';
+    ctx.fillText('FOCO', bx + 5, by + 6);
+  } else if (modeState === 'READING') {
+    const bx = cx - 32;
+    const by = py - 8 - (alt % 2);
+    px(ctx, bx, by, 23, 9, outline);
+    px(ctx, bx + 1, by + 1, 21, 7, '#0f172a');
+    ctx.font = 'bold 5px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#fde68a';
+    ctx.fillText('LENDO', bx + 11, by + 6);
+  }
+
+  // 12. PARTÍCULAS E TEXTO FLUTUANTE DE INTERAÇÃO AO CLICAR
+  if (avatarParticles.length > 0) {
+    const nextParticles = [];
+    for (const p of avatarParticles) {
+      px(ctx, p.x, p.y, 2, 2, p.color);
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += 0.22;
+      p.life -= 1;
+      if (p.life > 0) nextParticles.push(p);
+    }
+    avatarParticles = nextParticles;
+  }
+
+  if (avatarFloatText) {
+    ctx.font = 'bold 7px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#000000';
+    ctx.fillText(avatarFloatText.text, avatarFloatText.x + 1, avatarFloatText.y + 1);
+    ctx.fillStyle = '#facc15';
+    ctx.fillText(avatarFloatText.text, avatarFloatText.x, avatarFloatText.y);
+    avatarFloatText.y -= 1;
+    avatarFloatText.life -= 1;
+    if (avatarFloatText.life <= 0) avatarFloatText = null;
+  }
+
+  // 13. NOME VERDE + BARRA DE NÍVEL ACIMA DO PERSONAGEM
+  ctx.font = 'bold 8px monospace';
   ctx.textAlign = 'center';
   ctx.fillStyle = '#000000';
-  ctx.fillText('Matheus', cx + 1, 9);
+  ctx.fillText('Matheus', cx + 1, 20);
   ctx.fillStyle = '#4ade80';
-  ctx.fillText('Matheus', cx, 8);
+  ctx.fillText('Matheus', cx, 19);
 
-  px(ctx, cx - 14, 11, 28, 4, '#000000');
-  const barFill = Math.max(2, Math.round((lvl.pct / 100) * 26));
-  px(ctx, cx - 13, 12, barFill, 2, lvl.next ? '#22c55e' : '#facc15');
+  px(ctx, cx - 15, 22, 30, 4, '#000000');
+  const barFill = Math.max(2, Math.round((lvl.pct / 100) * 28));
+  px(ctx, cx - 14, 23, barFill, 2, lvl.next ? '#22c55e' : '#facc15');
 }
 
 function renderAvatarPanel() {
@@ -2426,13 +2878,13 @@ function renderAvatarPanel() {
   if (skills.tech.tier >= 1) gear.push('🎧 Headset + Notebook');
   if (skills.tech.tier >= 2) gear.push('🕶 Visor + Dual-Monitor');
   if (skills.tech.tier >= 3) gear.push('🧙‍♂️ Manto Technomancer + Runas');
-  if (skills.read.tier >= 1) gear.push('📕 Spellbook');
-  if (skills.read.tier >= 2) gear.push('📚 Estante Habbo');
+  if (skills.read.tier >= 1) gear.push('📕 Grimório de Bolso');
+  if (skills.read.tier >= 2) gear.push('📚 Estante de Livros');
   if (skills.read.tier >= 3) gear.push('✨ Tomo Arcano');
   if (skills.data.tier >= 1) gear.push('📊 Tapete + Gráfico Knaflic');
   if (skills.data.tier >= 2) gear.push('🧬 Crachá + Mini-DNA');
   if (skills.data.tier >= 3) gear.push('👑 Coroa + Troféu');
-  if (skills.focus.tier >= 1) gear.push('🔥 Tocha Tibia');
+  if (skills.focus.tier >= 1) gear.push('🔥 Tocha de Parede');
   if (skills.focus.tier >= 2) gear.push('💚 Aura + Caneca');
   if (skills.focus.tier >= 3) gear.push('🦉 Coruja Mensageira');
 
@@ -2857,6 +3309,8 @@ function formatTime(sec) {
   return `${m}:${s}`;
 }
 
+let lastAvatarTimerKey = '';
+
 function updateTimerUI() {
   document.getElementById('timerDisplay').textContent = formatTime(timerSeconds);
   document.getElementById('timerModeLabel').textContent = MODE_CONFIG[timerMode].label;
@@ -2864,6 +3318,11 @@ function updateTimerUI() {
   document.querySelectorAll('.mode-pill').forEach(p => {
     p.classList.toggle('active', p.dataset.mode === timerMode);
   });
+  const timerKey = `${timerRunning}:${timerMode}`;
+  if (timerKey !== lastAvatarTimerKey && lastAvatarTimerKey !== '') {
+    drawPixelAvatar(avatarAnimFrame);
+  }
+  lastAvatarTimerKey = timerKey;
 }
 
 function setTimerMode(mode) {
@@ -2993,11 +3452,16 @@ document.addEventListener('visibilitychange', () => {
 renderAll();
 updateTimerUI();
 
+const avatarCanvasEl = document.getElementById('avatarCanvas');
+if (avatarCanvasEl) {
+  avatarCanvasEl.addEventListener('click', handleAvatarCanvasClick, false);
+}
+
 setInterval(() => updateCountdown(), 1000);
 setInterval(() => {
-  avatarAnimFrame = (avatarAnimFrame + 1) % 8;
+  avatarAnimFrame = (avatarAnimFrame + 1) % 32;
   drawPixelAvatar(avatarAnimFrame);
-}, 450);
+}, 240);
 
 if (syncCfg.token && syncCfg.gistId) {
   syncNow({ silent: true });
