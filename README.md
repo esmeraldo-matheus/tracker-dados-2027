@@ -3,9 +3,11 @@
 Painel gamificado offline-first para acompanhar a trilha prática de **SQL, BI (Power BI / Looker Studio) e Python para Dados**, com foco em construção de portfólio em 10 semanas.
 
 ## Recursos
+- Contagem regressiva dinâmica com cronômetro em tempo real até `01/02/2027`
+- Personagem pixelado estilo Tibia/Habbo com evolução visual independente em 4 áreas (Código/SQL, Leitura, Dados/BI e Constância)
 - Timer Pomodoro integrado (`25m`, `15m Dia Caótico`, `5m Pausa`, `10m Leitura`)
-- Sistema de XP, níveis, *streak* e Estacionamento de Pensamentos
-- Checklist da Semana 1, Mapa das 10 Semanas e 3 Projetos de Portfólio
+- Sistema de XP, níveis, *streak*, cronograma adaptativo estilo Coursera e Estacionamento de Pensamentos
+- Base SQL normalizada (`pratica_sql_semana1.sql`) e template Python de AED reprodutível (`aed_reprodutivel_template.py`)
 - Sincronização opcional entre navegadores/dispositivos via **GitHub Gist Secreto** (nenhum dado pessoal fica salvo no repositório)
 
 ## Privacidade
