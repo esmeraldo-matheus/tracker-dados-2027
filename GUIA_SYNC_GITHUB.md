@@ -21,7 +21,7 @@ git add .
 git status
 git commit -m "Inicial: tracker de estudos"
 git branch -M main
-git remote add origin https://github.com/SEU-USUARIO/tracker-dados-2027.git
+git remote add origin https://github.com/esmeraldo-matheus/tracker-dados-2027.git
 git push -u origin main
 ```
 
@@ -33,7 +33,7 @@ No repositório recém-criado, clique em **Add file → Upload files**, arraste 
 2. Em **Build and deployment / Source**, selecione **Deploy from a branch**.
 3. Escolha a branch **`main`** e a pasta **`/ (root)`**, depois clique em **Save**.
 4. Aguarde ~1 minuto e atualize a página: seu tracker estará no ar em:
-   `https://SEU-USUARIO.github.io/tracker-dados-2027/`
+   `https://esmeraldo-matheus.github.io/tracker-dados-2027/`
 
 ---
 
@@ -53,7 +53,7 @@ No repositório recém-criado, clique em **Add file → Upload files**, arraste 
 
 ## Passo 3 — Conectar Casa, Trabalho e Celular (S23 Ultra)
 
-1. Abra sua URL `https://SEU-USUARIO.github.io/tracker-dados-2027/` no **primeiro dispositivo** (ex.: seu PC em casa).
+1. Abra sua URL `https://esmeraldo-matheus.github.io/tracker-dados-2027/` no **primeiro dispositivo** (ex.: seu PC em casa).
 2. Clique no botão **`☁️ Sync: Local (Configurar)`** no cabeçalho.
 3. Cole seu token `ghp_...`, deixe o campo **Gist ID** em branco e clique em **Conectar e Sincronizar**.
    - Ele criará automaticamente um **Gist Secreto (`progresso_dados_2027.json`)** na sua conta!
